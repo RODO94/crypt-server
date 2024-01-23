@@ -15,9 +15,9 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/users", userRoutes);
-app.use("/battles", battlesRoutes);
-app.use("/rankings", rankingsRoutes);
-app.use("/armies", armiesRoutes);
+// app.use("/battles", battlesRoutes);
+// app.use("/rankings", rankingsRoutes);
+// app.use("/armies", armiesRoutes);
 
 app.listen(PORT, () => {
   console.log(`running at http://localhost:${PORT}`);

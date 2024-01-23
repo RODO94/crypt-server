@@ -13,6 +13,11 @@ exports.up = function (knex) {
       table.string("known_as");
       table.string("role").notNullable();
     })
+    .createTable("emblems", (table) => {
+      table.string("id").primary();
+      table.binary("emblem_blob").notNullable();
+      table.string("emblem_name").notNullable();
+    })
     .createTable("armies", (table) => {
       table.string("id").primary();
       table.string("name").notNullable();
@@ -26,6 +31,12 @@ exports.up = function (knex) {
         .onDelete("CASCADE");
       table.foreign("user_id");
     })
+    .createTable("combatants", (table) => {
+      table.string("id").primary();
+      table.string("army_id").references("armies.id").notNullable();
+      table.string("team_id");
+      table.foreign("army_id");
+    })
     .createTable("matches", (table) => {
       table.string("id").primary();
       table.date("date").notNullable();
@@ -34,8 +45,8 @@ exports.up = function (knex) {
       table.string("status");
       table.string("match_type").notNullable();
       table.string("player_type").notNullable();
-      table.string("player_1_id").references("combatant.id");
-      table.string("player_2_id").references("combatant.id");
+      table.string("player_1_id").references("combatants.id");
+      table.string("player_2_id").references("combatants.id");
       table.foreign("player_1_id");
       table.foreign("player_2_id");
     })
@@ -50,25 +61,6 @@ exports.up = function (knex) {
         .onDelete("CASCADE");
       table.smallint("rank").notNullable();
       table.smallint("prev_rank");
-      table
-        .string("army_id")
-        .references("armies.id")
-        .notNullable()
-        .onUpdate("CASCADE")
-        .onDelete("CASCADE");
-    })
-    .createTable("combatants", (table) => {
-      table.string("id").primary();
-      table.string("match_id").references("matches.id").notNullable();
-      table.string("army_id").references("armies.id").notNullable();
-      table.string("team_id").references("teams.id");
-      table.foreign("match_id");
-      table.foreign("army_id");
-    })
-    .createTable("emblems", (table) => {
-      table.string("id").primary();
-      table.binary("emblem_blob").notNullable();
-      table.string("emblem_name").notNullable();
     });
 };
 
@@ -76,4 +68,12 @@ exports.up = function (knex) {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function (knex) {};
+exports.down = function (knex) {
+  return knex.schema
+    .dropTable("users")
+    .dropTable("armies")
+    .dropTable("matches")
+    .dropTable("rank")
+    .dropTable("combatants")
+    .dropTable("emblems");
+};

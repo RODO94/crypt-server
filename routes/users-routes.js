@@ -6,8 +6,6 @@ const crypto = require("crypto");
 const router = express.Router();
 const nodemailer = require("nodemailer");
 
-const { existenceValidation } = require("../utils/ValidationMethods");
-
 require("dotenv").config();
 
 const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
@@ -237,6 +235,116 @@ router.route("/user/:id").patch(async (req, res) => {
       .send(
         `There is an issue with your request, please check the details and resubmit`
       );
+  }
+});
+
+router.route("/edit/:id/first_name").patch(async (req, res) => {
+  const { first_name } = req.body;
+  const id = req.params.id;
+
+  const targetUser = await knex("users").where({ id: id }).first();
+
+  if (!targetUser) {
+    res.status(400).send("User has not been found");
+  }
+  if (!first_name) {
+    return res.status(400).send("Please add a first name to the request");
+  }
+
+  try {
+    const firstNameChange = await knex("users")
+      .where({ id: id })
+      .update({ first_name: first_name });
+
+    res.status(200).send(`First Name has been changed to ${first_name}`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send("An error has arisen, please check the details and connection");
+  }
+});
+
+router.route("/edit/:id/last_name").patch(async (req, res) => {
+  const { last_name } = req.body;
+  const id = req.params.id;
+
+  const targetUser = await knex("users").where({ id: id }).first();
+
+  if (!targetUser) {
+    res.status(400).send("User has not been found");
+  }
+  if (!last_name) {
+    return res.status(400).send("Please add a last name to the request");
+  }
+
+  try {
+    const lastNameChange = await knex("users")
+      .where({ id: id })
+      .update({ last_name: last_name });
+
+    res.status(200).send(`Last Name has been changed to ${last_name}`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send("An error has arisen, please check the details and connection");
+  }
+});
+
+router.route("/edit/:id/email").patch(async (req, res) => {
+  const { email } = req.body;
+  const id = req.params.id;
+
+  const targetUser = await knex("users").where({ id: id }).first();
+
+  if (!targetUser) {
+    res.status(400).send("User has not been found");
+  }
+  if (!email) {
+    return res.status(400).send("Please add an email to the request");
+  }
+
+  try {
+    const emailChange = await knex("users")
+      .where({ id: id })
+      .update({ email: email });
+
+    res.status(200).send(`Your email has been changed to ${email}`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send("An error has arisen, please check the details and connection");
+  }
+});
+
+router.route("/edit/:id/known_as").patch(async (req, res) => {
+  const { known_as } = req.body;
+  const id = req.params.id;
+
+  const targetUser = await knex("users").where({ id: id }).first();
+
+  if (!targetUser) {
+    res.status(400).send("User has not been found");
+  }
+  if (!known_as) {
+    return res
+      .status(400)
+      .send("Please add how you would like to be known to the request");
+  }
+
+  try {
+    const knownAsChange = await knex("users")
+      .where({ id: id })
+      .update({ known_as: known_as });
+
+    res.status(200).send(`Known as has been changed to ${known_as}`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send("An error has arisen, please check the details and connection");
   }
 });
 

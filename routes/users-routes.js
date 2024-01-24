@@ -6,6 +6,8 @@ const crypto = require("crypto");
 const router = express.Router();
 const nodemailer = require("nodemailer");
 
+const { existenceValidation } = require("../utils/ValidationMethods");
+
 require("dotenv").config();
 
 const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
@@ -21,6 +23,35 @@ const transport = nodemailer.createTransport({
 
 router.route("/register").post(async (req, res) => {
   const { first_name, last_name, known_as, email, password } = req.body;
+
+  if (!first_name) {
+    return res
+      .status(400)
+      .send(
+        "First name cannot be read from the request, please send again with the first name added"
+      );
+  }
+  if (!last_name) {
+    return res
+      .status(400)
+      .send(
+        "Last name cannot be read from the request, please send again with the last name added"
+      );
+  }
+  if (!email) {
+    return res
+      .status(400)
+      .send(
+        "Email cannot be read from the request, please send again with the email added"
+      );
+  }
+  if (!password) {
+    return res
+      .status(400)
+      .send(
+        "Password cannot be read from the request, please send again with the password added"
+      );
+  }
 
   const hashedPassword = bcrypt.hashSync(password);
 
@@ -149,6 +180,63 @@ router.route("/reset/:id").patch(async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to change the password");
+  }
+});
+
+router.route("/admin/:id").patch(async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const adminRights = await knex("users")
+      .where({ id: id })
+      .update({ role: "admin" });
+
+    res.status(200).send(`User with ID ${id} has been given admin rights`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send(
+        "There is an issue with your request, please check the details and resubmit"
+      );
+  }
+});
+
+router.route("/deactivate/:id").patch(async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const deactivateRights = await knex("users")
+      .where({ id: id })
+      .update({ role: "deactivated" });
+
+    res.status(200).send(`User with ID ${id} has been deactivated`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send(
+        `There is an issue with your request, please check the details and resubmit`
+      );
+  }
+});
+
+router.route("/user/:id").patch(async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const userRights = await knex("users")
+      .where({ id: id })
+      .update({ role: "user" });
+
+    res.status(200).send(`User with ID ${id} has been given user status`);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(400)
+      .send(
+        `There is an issue with your request, please check the details and resubmit`
+      );
   }
 });
 

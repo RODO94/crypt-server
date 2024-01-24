@@ -4,6 +4,20 @@ const jwt = require("jsonwebtoken");
 const knex = require("knex")(require("../knexfile"));
 const crypto = require("crypto");
 const router = express.Router();
+const nodemailer = require("nodemailer");
+
+require("dotenv").config();
+
+const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
+
+const transport = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "b34d99c801334f",
+    pass: "8d263e86c481fc",
+  },
+});
 
 router.route("/register").post(async (req, res) => {
   const { first_name, last_name, known_as, email, password } = req.body;
@@ -66,6 +80,75 @@ router.route("/login").post(async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to find user");
+  }
+});
+
+router.route("/reset").post(async (req, res) => {
+  const { email } = req.body;
+
+  const emailHTML = `<h1>Hello from Crypt</h1><p>To reset your password, please use the link below</p><a href="http://localhost:8080"> Reset Your Password </a>`;
+
+  try {
+    const user = await knex("users").where({ email: email }).first();
+
+    if (!user) {
+      return res.status(400).send("User is not found, please check the mail");
+    }
+
+    let mailOptions = {
+      from: "thecrypt@email.com",
+      to: email,
+      subject: "Reset your Crypt Password",
+      text: `To reset your password please go to: ${baseURL}/reset/${user.id}`,
+      html: emailHTML,
+    };
+
+    transport.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+    res.status(200).send("Email Sent");
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Error retrieving user");
+  }
+});
+
+router.route("/reset/:id").patch(async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return res
+      .status(400)
+      .send("Please include the new password in your request");
+  }
+
+  const id = req.params.id.toString();
+
+  if (!id) {
+    return res.status(400).send("Invalid user ID in request parameters");
+  }
+
+  const hashedPassword = bcrypt.hashSync(password);
+
+  try {
+    const userToChange = await knex("users")
+      .where({ id: id })
+      .update({ password: hashedPassword });
+
+    if (!userToChange) {
+      return res
+        .status(400)
+        .send("User cannot be located, you may need to sign up first");
+    }
+
+    res.status(200).send("Password changed");
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to change the password");
   }
 });
 

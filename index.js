@@ -20,5 +20,5 @@ app.use("/users", userRoutes);
 // app.use("/armies", armiesRoutes);
 
 app.listen(PORT, () => {
-  console.log(`running at http://localhost:${PORT}`);
+  console.log(`running at ${process.env.BASE_URL}${PORT}`);
 });

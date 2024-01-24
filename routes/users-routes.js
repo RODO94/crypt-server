@@ -54,7 +54,7 @@ router.route("/register").post(async (req, res) => {
   const hashedPassword = bcrypt.hashSync(password);
 
   const newUser = {
-    id: "1ABC",
+    id: crypto.randomUUID(),
     first_name,
     last_name,
     known_as,
@@ -64,15 +64,7 @@ router.route("/register").post(async (req, res) => {
   };
 
   try {
-    await knex("users").insert({
-      id: "1ABC",
-      first_name,
-      last_name,
-      known_as,
-      email,
-      password: hashedPassword,
-      role: "admin",
-    });
+    await knex("users").insert(newUser);
     res.status(201).send("Registration Successful!");
   } catch (error) {
     console.error(error);

@@ -4,4 +4,6 @@ const router = express.Router();
 
 require("dotenv").config();
 
+router.route("/create").post(async (req, res) => {});
+
 module.exports = router;

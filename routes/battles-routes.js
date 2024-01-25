@@ -6,17 +6,24 @@ const dayjs = require("dayjs");
 
 require("dotenv").config();
 
+const { multiplayerKnexInsert } = require("../controllers/battles-controller");
+
 router.route("/create").post(async (req, res) => {
   let { battle_type, player_type, player_1, player_2, date } = req.body;
+
+  if (!battle_type | !player_type | !player_1 | !player_2 | !date) {
+    return res
+      .status(400)
+      .send("Details are missing, please check your submission and try again");
+  }
 
   if (date === "unspecified") {
     date = dayjs().format("YYYY-MM-DD HH:mm:ss");
   }
+  const playerOneID = crypto.randomUUID();
+  const playerTwoID = crypto.randomUUID();
 
   if (player_type === "single") {
-    const playerOneID = crypto.randomUUID();
-    const playerTwoID = crypto.randomUUID();
-
     const playerOne = { id: playerOneID, army_id: player_1[0].army_id };
     const playerTwo = { id: playerTwoID, army_id: player_2[0].army_id };
 
@@ -68,6 +75,32 @@ router.route("/create").post(async (req, res) => {
         .send(
           "Unable to create new battle, please check the submitted details"
         );
+    }
+  } else if (player_type === "multi") {
+    // if multi, player_1 & player_2 will be added as arrays of more than 1
+    // each array will contain an object with the army_id
+
+    await multiplayerKnexInsert(player_1, playerOneID);
+    await multiplayerKnexInsert(player_2, playerTwoID);
+
+    try {
+      const teamOne = await knex("combatants").where({ team_id: playerOneID });
+      const teamTwo = await knex("combatants").where({ team_id: playerTwoID });
+
+      const newBattleObj = {
+        id: crypto.randomUUID(),
+        date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
+        player_type,
+        battle_type,
+        player_1_id: playerOneID,
+        player_2_id: playerTwoID,
+      };
+
+      await knex("battles").insert(newBattleObj);
+      res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
+    } catch (error) {
+      console.error(error);
+      res.status(400).send("Error with multiplayer battle creation");
     }
   }
 });

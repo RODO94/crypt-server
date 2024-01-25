@@ -9,9 +9,17 @@ require("dotenv").config();
 const { multiplayerKnexInsert } = require("../controllers/battles-controller");
 
 router.route("/create").post(async (req, res) => {
-  let { battle_type, player_type, player_1, player_2, date } = req.body;
+  let { points_size, battle_type, player_type, player_1, player_2, date } =
+    req.body;
 
-  if (!battle_type | !player_type | !player_1 | !player_2 | !date) {
+  if (
+    !points_size |
+    !battle_type |
+    !player_type |
+    !player_1 |
+    !player_2 |
+    !date
+  ) {
     return res
       .status(400)
       .send("Details are missing, please check your submission and try again");
@@ -57,6 +65,7 @@ router.route("/create").post(async (req, res) => {
       date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
       player_type,
       battle_type,
+      points_size,
       player_1_id: playerOneID,
       player_2_id: playerTwoID,
     };
@@ -92,6 +101,7 @@ router.route("/create").post(async (req, res) => {
         date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
         player_type,
         battle_type,
+        points_size,
         player_1_id: playerOneID,
         player_2_id: playerTwoID,
       };
@@ -103,6 +113,33 @@ router.route("/create").post(async (req, res) => {
       res.status(400).send("Error with multiplayer battle creation");
     }
   }
+});
+
+router.route("/:id/edit/pointsize").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { points_size } = req.body;
+
+  try {
+    await knex("battles")
+      .where({ id: battleID })
+      .update({ points_size: points_size });
+  } catch (error) {}
+});
+router.route("/:id/edit/scenario").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { scenario } = req.body;
+});
+router.route("/:id/edit/date").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { date } = req.body;
+});
+router.route("/:id/edit/gametype").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { battle_type, player_type } = req.body;
+});
+router.route("/:id/edit/combatants").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { player_1, player_2 } = req.body;
 });
 
 module.exports = router;

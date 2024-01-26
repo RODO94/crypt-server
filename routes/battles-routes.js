@@ -477,4 +477,82 @@ router.route("/:id/delete").delete(async (req, res) => {
   }
 });
 
+router.route("/:id/submit").post(async (req, res) => {
+  // In every battle, an army's rank will change
+  // When a battle is submitted, it should create a new rank for each player
+  // unless the battle is multiplayer
+  // Submit battle, check inputs, change status to submitted,
+  // add result, and winner
+  // For a single player game...
+  // determine current rank position of players and create their new rank
+
+  const battleID = req.params.id;
+
+  const battleObj = await knex("battles").where({ id: battleID }).first();
+
+  if (!battleObj) {
+    return res.status(400).send("Unable to find the battle");
+  }
+
+  if (!battleObj.player_1_points | (battleObj.player_1_points === 0)) {
+    return res.status(400).send("Please add points for Player 1");
+  }
+
+  if (!battleObj.player_2_points | (battleObj.player_2_points === 0)) {
+    return res.status(400).send("Please add points for Player 2");
+  }
+
+  let battleWinner = null;
+  let finalResult = null;
+
+  battleObj.player_1_points > battleObj.player_2_points
+    ? (battleWinner = battleObj.player_1_id)
+    : battleObj.player_1_points < battleObj.player_2_points
+    ? (battleWinner = battleObj.player_2_id)
+    : (battleWinner = "match drawn");
+
+  battleObj.player_1_points > battleObj.player_2_points
+    ? (finalResult = "victory")
+    : battleObj.player_1_points < battleObj.player_2_points
+    ? (finalResult = "victory")
+    : (finalResult = "draw");
+
+  if (battleObj.player_type === "multi") {
+    try {
+      await knex("battles").where({ id: battleID }).update({
+        status: "submitted",
+        winner: battleWinner,
+        result: finalResult,
+      });
+
+      return res
+        .status(200)
+        .send(await knex("battles").where({ id: battleID }).first());
+    } catch (error) {
+      console.error(error);
+      res.status(400).send("Unable to submit the battle");
+    }
+  }
+
+  // We have a winner, result, and status
+  // Now I need to build the rank
+  // I'll test battle 3 with combatants 6 + 10
+  // Combat 6 - army 4 - rank 24.67 - prevRank 17
+  // combat 10 - army 8 - rank 40.65 - prevRank 9
+  try {
+    const rankOne = await knex("rank")
+      .where({ id: battleObj.player_1_id })
+      .orderBy("date", "desc");
+
+    const combatantOne = await knex("combatants")
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("rank", "combatants.army_id", "=", "rank.army_id");
+
+    res.status(200).send(rankOne);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to submit battle");
+  }
+});
+
 module.exports = router;

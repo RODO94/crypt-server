@@ -396,5 +396,70 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
     }
   }
 });
+router.route("/:id/edit/points_1").patch(async (req, res) => {
+  const { points } = req.body;
+  const battleID = req.params.id;
+
+  if (typeof points !== "number") {
+    return res
+      .status(400)
+      .send("Submission needs to be a number, please check the details");
+  }
+
+  if (!points) {
+    return res
+      .status(400)
+      .send("A value for Points is required for the submission");
+  }
+
+  try {
+    await knex("battles")
+      .where({ id: battleID })
+      .update({ player_1_points: points });
+
+    const newBattle = await knex("battles").where({ id: battleID }).first();
+
+    res.status(200).send({
+      message: "Points for player 1 successfully updated",
+      newBattle: newBattle,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to update the battle");
+  }
+});
+
+router.route("/:id/edit/points_2").patch(async (req, res) => {
+  const { points } = req.body;
+  const battleID = req.params.id;
+
+  if (typeof points !== "number") {
+    return res
+      .status(400)
+      .send("Submission needs to be a number, please check the details");
+  }
+
+  if (!points) {
+    return res
+      .status(400)
+      .send("A value for Points is required for the submission");
+  }
+
+  try {
+    await knex("battles")
+      .where({ id: battleID })
+      .update({ player_2_points: points });
+
+    const newBattle = await knex("battles").where({ id: battleID }).first();
+
+    res.status(200).send({
+      message: "Points for player 2 successfully updated",
+      newBattle: newBattle,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to update the battle");
+  }
+});
 
 module.exports = router;

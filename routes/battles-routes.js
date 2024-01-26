@@ -268,14 +268,14 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
 
   const prevPlayerOneID = battleToChange.player_1_id;
   const prevPlayerTwoID = battleToChange.player_2_id;
-  // The case where the game is single but they have added another player
-  // making it multiplayer.
-  //   Player ID's would need to switch to Team IDs, update the combatants
 
   if (
     battleToChange.player_type === "single" &&
     (player_1.length > 1) | (player_2.length > 1)
   ) {
+    // The case where the game is single but they have added another player
+    // making it multiplayer.
+    //   Player ID's would need to switch to Team IDs, update the combatants
     try {
       const teamOneID = crypto.randomUUID();
       const teamTwoID = crypto.randomUUID();
@@ -294,6 +294,10 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
       await knex("battles")
         .where({ id: battleID })
         .update({ player_type: "multi" });
+
+      await knex("battles")
+        .where({ id: battleID })
+        .update({ player_1_id: teamOneID, player_2_id: teamTwoID });
 
       res.status(200).send({
         message: "Teams successfully Update",
@@ -315,12 +319,12 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
       if (player_1.id !== prevPlayerOneID) {
         await knex("combatants")
           .where({ id: prevPlayerOneID })
-          .update({ army_id: player_1.army_id });
+          .update({ army_id: player_1[0].army_id });
       }
       if (player_2.id !== prevPlayerTwoID) {
         await knex("combatants")
           .where({ id: prevPlayerTwoID })
-          .update({ army_id: player_2.army_id });
+          .update({ army_id: player_2[0].army_id });
       }
 
       res.status(200).send({
@@ -341,11 +345,15 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
     const playerTwoID = crypto.randomUUID();
 
     try {
+      await knex("battles")
+        .where({ id: battleID })
+        .update({ player_type: "single" });
+
       await deleteCombatantTeam(battleToChange.player_1_id);
       await deleteCombatantTeam(battleToChange.player_2_id);
 
-      const playerOneObj = await addCombatant(player_1.army_id, playerOneID);
-      const playerTwoObj = await addCombatant(player_2.army_id, playerTwoID);
+      const playerOneObj = await addCombatant(player_1[0].army_id, playerOneID);
+      const playerTwoObj = await addCombatant(player_2[0].army_id, playerTwoID);
 
       await assignNewCombatant(battleID, playerOneID, 1);
       await assignNewCombatant(battleID, playerTwoID, 2);
@@ -358,6 +366,33 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
     } catch (error) {
       console.error(error);
       res.status(400).send("Unable to update the battle");
+    }
+  } else if (
+    battleToChange.player_type === "multi" &&
+    player_1.length > 1 &&
+    player_2.length > 1
+  ) {
+    const playerOneID = crypto.randomUUID();
+    const playerTwoID = crypto.randomUUID();
+
+    try {
+      await deleteCombatantTeam(battleToChange.player_1_id);
+      await deleteCombatantTeam(battleToChange.player_2_id);
+
+      const teamOneArray = await multiplayerKnexInsert(player_1, playerOneID);
+      const teamTwoArray = await multiplayerKnexInsert(player_2, playerTwoID);
+
+      await assignNewCombatant(battleID, playerOneID, 1);
+      await assignNewCombatant(battleID, playerTwoID, 2);
+
+      res.status(200).send({
+        message: "Teams have been updated",
+        team_1: teamOneArray,
+        team_2: teamTwoArray,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(400).send("Unable to update teams");
     }
   }
 });

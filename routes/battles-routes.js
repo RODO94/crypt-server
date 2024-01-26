@@ -462,4 +462,19 @@ router.route("/:id/edit/points_2").patch(async (req, res) => {
   }
 });
 
+router.route("/:id/delete").delete(async (req, res) => {
+  const battleID = req.params.id;
+  const battleObj = await knex("battles").where({ id: battleID }).first();
+  try {
+    await knex("battles").where({ id: battleID }).del();
+
+    res
+      .status(200)
+      .send({ message: "Successfully deleted the battle", battle: battleObj });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to delete the requested battle");
+  }
+});
+
 module.exports = router;

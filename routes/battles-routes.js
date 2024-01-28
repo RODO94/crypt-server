@@ -98,9 +98,6 @@ router.route("/create").post(async (req, res) => {
         );
     }
   } else if (player_type === "multi") {
-    // if multi, player_1 & player_2 will be added as arrays of more than 1
-    // each array will contain an object with the army_id
-
     await multiplayerKnexInsert(player_1, playerOneID);
     await multiplayerKnexInsert(player_2, playerTwoID);
 
@@ -484,14 +481,6 @@ router.route("/:id/delete").delete(async (req, res) => {
 });
 
 router.route("/:id/submit").post(async (req, res) => {
-  // In every battle, an army's rank will change
-  // When a battle is submitted, it should create a new rank for each player
-  // unless the battle is multiplayer
-  // Submit battle, check inputs, change status to submitted,
-  // add result, and winner
-  // For a single player game...
-  // determine current rank position of players and create their new rank
-
   const battleID = req.params.id;
 
   const battleObj = await knex("battles").where({ id: battleID }).first();
@@ -540,11 +529,6 @@ router.route("/:id/submit").post(async (req, res) => {
     }
   }
 
-  // We have a winner, result, and status
-  // Now I need to build the rank
-  // I'll test battle 3 with combatants 6 + 10
-  // Combat 6 - army 4 - rank 24.67 - prevRank 17
-  // combat 10 - army 8 - rank 40.65 - prevRank 9
   try {
     const armyOne = await fetchBattleCombatantArmy(battleObj.player_1_id, 1);
     const armyTwo = await fetchBattleCombatantArmy(battleObj.player_2_id, 2);

@@ -138,7 +138,6 @@ const createNewRank = async (newRank, armyID, battleType) => {
     .where({ "armies.type": battleType })
     .as("ranks");
 
-  // select the rows where the rank is 1
   const query = knex(subquery)
     .select("army_id", "date", "ranking", "rn")
     .where("rn", 1)

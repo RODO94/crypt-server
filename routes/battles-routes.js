@@ -18,6 +18,9 @@ const {
   rankChangeWin,
   rankChangeLoss,
   createNewRank,
+  fetchAllBattles,
+  fetchUpcomingBattles,
+  fetchCompletedBattles,
 } = require("../controllers/battles-controller");
 
 router.route("/create").post(async (req, res) => {
@@ -123,6 +126,10 @@ router.route("/create").post(async (req, res) => {
     }
   }
 });
+
+router.route("/all").get(fetchAllBattles);
+router.route("/upcoming").get(fetchUpcomingBattles);
+router.route("/completed").get(fetchCompletedBattles);
 
 router.route("/:id/edit/pointsize").patch(async (req, res) => {
   const battleID = req.params.id;
@@ -431,7 +438,6 @@ router.route("/:id/edit/points_1").patch(async (req, res) => {
     res.status(400).send("Unable to update the battle");
   }
 });
-
 router.route("/:id/edit/points_2").patch(async (req, res) => {
   const { points } = req.body;
   const battleID = req.params.id;

@@ -165,6 +165,40 @@ const createNewRank = async (newRank, armyID, battleType) => {
   }
 };
 
+const fetchAllBattles = async (req, res) => {
+  try {
+    const battleArray = await knex("battles");
+
+    res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve all battles");
+  }
+};
+const fetchUpcomingBattles = async (req, res) => {
+  try {
+    const date = Date.now();
+    const battleArray = await knex("battles")
+      .where("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
+      .andWhere({ status: null });
+
+    res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve all battles");
+  }
+};
+const fetchCompletedBattles = async (req, res) => {
+  try {
+    const battleArray = await knex("battles").where({ status: "submitted" });
+
+    res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve all battles");
+  }
+};
+
 module.exports = {
   multiplayerKnexInsert,
   singleToMultiCombatantUpdate,
@@ -177,4 +211,7 @@ module.exports = {
   rankChangeWin,
   rankChangeLoss,
   createNewRank,
+  fetchAllBattles,
+  fetchUpcomingBattles,
+  fetchCompletedBattles,
 };

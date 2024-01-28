@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const knex = require("knex")(require("../knexfile"));
+const dayjs = require("dayjs");
 
 const multiplayerKnexInsert = async (playerArray, teamID) => {
   teamArray = [];
@@ -62,10 +63,119 @@ const assignNewCombatant = async (battleID, combatantID, player) => {
   }
 };
 
+const fetchBattleCombatantArmy = async (playerID, player) => {
+  const armyObj = await knex("battles")
+    .join("combatants", `battles.player_${player}_id`, "=", "combatants.id")
+    .where({ "combatants.id": playerID })
+    .select("combatants.army_id")
+    .first();
+
+  return armyObj;
+};
+
+const fetchRecentArmyRank = async (armyID) => {
+  const armyRankObj = await knex("rank")
+    .where({ army_id: armyID })
+    .orderBy("date", "desc")
+    .first()
+    .select("ranking");
+
+  return armyRankObj;
+};
+
+const rankChangeDraw = (rankOne, rankTwo) => {
+  let rankChangeOne = 0;
+  let rankChangeTwo = 0;
+
+  const rankOneDiff = rankTwo - rankOne;
+
+  (rankOneDiff <= -10) | (rankOneDiff >= 10)
+    ? (rankChangeOne = 1)
+    : (rankChangeOne = rankOneDiff * 0.1);
+
+  const rankTwoDiff = rankOne - rankTwo;
+
+  (rankTwoDiff <= -10) | (rankTwoDiff >= 10)
+    ? (rankChangeTwo = 1)
+    : (rankChangeTwo = rankTwoDiff * 0.1);
+
+  return { rankChangeOne: rankChangeOne, rankChangeTwo: rankChangeTwo };
+};
+
+const rankChangeWin = (winnerRank, loserRank) => {
+  let rankChange = 0;
+
+  const rankDiff = loserRank - winnerRank;
+
+  rankDiff >= 10
+    ? (rankChange = 2)
+    : rankDiff <= -10
+    ? (rankChange = 0)
+    : (rankChange = rankDiff * 0.1 + 1);
+
+  return rankChange;
+};
+
+const rankChangeLoss = (loserRank, winnerRank) => {
+  let rankChange = 0;
+
+  const rankDiff = winnerRank - loserRank;
+
+  rankDiff >= 10
+    ? (rankChange = 0)
+    : rankDiff <= -10
+    ? (rankChange = 2)
+    : (rankChange = rankDiff * 0.1 - 1);
+
+  return rankChange;
+};
+
+const createNewRank = async (newRank, armyID, battleType) => {
+  const subquery = knex("rank")
+    .join("armies", "rank.army_id", "=", "armies.id")
+    .select("army_id", "date", "ranking")
+    .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
+    .where({ "armies.type": battleType })
+    .as("ranks");
+
+  // select the rows where the rank is 1
+  const query = knex(subquery)
+    .select("army_id", "date", "ranking", "rn")
+    .where("rn", 1)
+    .orderBy("ranking", "desc");
+
+  const currentRankPosition =
+    (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
+
+  const date = Date.now();
+
+  const newRankObj = {
+    id: crypto.randomUUID(),
+    date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
+    ranking: newRank,
+    army_id: armyID,
+    prev_ranking: currentRankPosition,
+  };
+
+  try {
+    await knex("rank").insert(newRankObj);
+    return newRankObj;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+
 module.exports = {
   multiplayerKnexInsert,
   singleToMultiCombatantUpdate,
   deleteCombatantTeam,
   addCombatant,
   assignNewCombatant,
+  fetchBattleCombatantArmy,
+  fetchRecentArmyRank,
+  rankChangeDraw,
+  rankChangeWin,
+  rankChangeLoss,
+  createNewRank,
 };

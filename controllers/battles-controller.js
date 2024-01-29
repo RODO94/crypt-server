@@ -83,11 +83,46 @@ const fetchRecentArmyRank = async (armyID) => {
   return armyRankObj;
 };
 
+const battleResultFantasy = (pointSize, playerOnePoints, playerTwoPoints) => {
+  const pointsDifference = playerOnePoints - playerTwoPoints;
+
+  pointsDifference < 0
+    ? (pointsDifference = playerTwoPoints - playerOnePoints)
+    : pointsDifference;
+
+  if (pointSize > 0 && pointSize <= 1999) {
+    return pointsDifference > 149 ? "victory" : "draw";
+  } else if (pointSize > 1999 && pointSize <= 2999) {
+    return pointsDifference > 299 ? "victory" : "draw";
+  } else if (pointSize > 2999 && pointSize <= 3999) {
+    return pointsDifference > 449 ? "victory" : "draw";
+  } else if (pointSize > 3999 && pointSize <= 4999) {
+    return pointsDifference > 599 ? "victory" : "draw";
+  } else if (pointSize > 4999 && pointSize <= 5999) {
+    return pointsDifference > 749 ? "victory" : "draw";
+  } else if (pointSize > 5999) {
+    return pointsDifference > 1199 ? "victory" : "draw";
+  }
+};
+
+const battleResultFortyK = (playerOnePoints, playerTwoPoints) => {
+  let finalResult = null;
+  playerOnePoints > playerTwoPoints
+    ? (finalResult = "victory")
+    : playerOnePoints < playerTwoPoints
+    ? (finalResult = "victory")
+    : (finalResult = "draw");
+
+  return finalResult;
+};
 const rankChangeDraw = (rankOne, rankTwo) => {
   let rankChangeOne = 0;
   let rankChangeTwo = 0;
 
   const rankOneDiff = rankTwo - rankOne;
+
+  // If -10 : Rc is -1
+  // if 10 : Rc is 1
 
   (rankOneDiff <= -10) | (rankOneDiff >= 10)
     ? (rankChangeOne = 1)
@@ -214,4 +249,6 @@ module.exports = {
   fetchAllBattles,
   fetchUpcomingBattles,
   fetchCompletedBattles,
+  battleResultFantasy,
+  battleResultFortyK,
 };

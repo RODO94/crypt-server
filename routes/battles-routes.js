@@ -21,6 +21,8 @@ const {
   fetchAllBattles,
   fetchUpcomingBattles,
   fetchCompletedBattles,
+  battleResultFantasy,
+  battleResultFortyK,
 } = require("../controllers/battles-controller");
 
 router.route("/create").post(async (req, res) => {
@@ -506,17 +508,24 @@ router.route("/:id/submit").post(async (req, res) => {
   let battleWinner = null;
   let finalResult = null;
 
+  battleObj.battle_type === "fantasy"
+    ? (finalResult = battleResultFantasy(
+        battleObj.points_size,
+        battleObj.player_1_points,
+        battleObj.player_2_points
+      ))
+    : battleObj.battle_type === "40k"
+    ? (finalResult = battleResultFortyK(
+        battleObj.player_1_points,
+        battleObj.player_2_points
+      ))
+    : (finalResult = "undefined");
+
   battleObj.player_1_points > battleObj.player_2_points
     ? (battleWinner = battleObj.player_1_id)
     : battleObj.player_1_points < battleObj.player_2_points
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
-
-  battleObj.player_1_points > battleObj.player_2_points
-    ? (finalResult = "victory")
-    : battleObj.player_1_points < battleObj.player_2_points
-    ? (finalResult = "victory")
-    : (finalResult = "draw");
 
   if (battleObj.player_type === "multi") {
     try {

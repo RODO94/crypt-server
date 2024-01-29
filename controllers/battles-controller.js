@@ -234,6 +234,34 @@ const fetchCompletedBattles = async (req, res) => {
   }
 };
 
+const fetchFiveUpcomingBattles = async (req, res) => {
+  try {
+    const date = Date.now();
+    const battleArray = await knex("battles")
+      .where("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
+      .andWhere({ status: null })
+      .limit(5);
+
+    res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve all battles");
+  }
+};
+const fetchFiveCompletedBattles = async (req, res) => {
+  try {
+    const battleArray = await knex("battles")
+      .where({ status: "submitted" })
+      .orderBy("date", "desc")
+      .limit(5);
+
+    res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve all battles");
+  }
+};
+
 module.exports = {
   multiplayerKnexInsert,
   singleToMultiCombatantUpdate,
@@ -249,6 +277,8 @@ module.exports = {
   fetchAllBattles,
   fetchUpcomingBattles,
   fetchCompletedBattles,
+  fetchFiveUpcomingBattles,
+  fetchFiveCompletedBattles,
   battleResultFantasy,
   battleResultFortyK,
 };

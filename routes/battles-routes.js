@@ -23,6 +23,8 @@ const {
   fetchCompletedBattles,
   battleResultFantasy,
   battleResultFortyK,
+  fetchFiveUpcomingBattles,
+  fetchFiveCompletedBattles,
 } = require("../controllers/battles-controller");
 
 router.route("/create").post(async (req, res) => {
@@ -131,7 +133,9 @@ router.route("/create").post(async (req, res) => {
 
 router.route("/all").get(fetchAllBattles);
 router.route("/upcoming").get(fetchUpcomingBattles);
+router.route("/upcoming/5").get(fetchFiveUpcomingBattles);
 router.route("/completed").get(fetchCompletedBattles);
+router.route("/completed/5").get(fetchFiveCompletedBattles);
 
 router.route("/:id/edit/pointsize").patch(async (req, res) => {
   const battleID = req.params.id;

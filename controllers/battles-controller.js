@@ -262,6 +262,151 @@ const fetchFiveCompletedBattles = async (req, res) => {
   }
 };
 
+const fetchUsersUpcomingBattles = async (req, res) => {
+  const userID = req.params.id;
+  const date = Date.now();
+
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .andWhere("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
+      .andWhere({ status: null });
+
+    return res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
+const fetchUsersCompletedBattles = async (req, res) => {
+  const userID = req.params.id;
+
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .andWhere({ status: "submitted" });
+
+    return res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
+const fetchAllUsersBattles = async (req, res) => {
+  const userID = req.params.id;
+
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .select(
+        "battles.id",
+        "battles.date",
+        "armies.name",
+        "combatants.army_id"
+      );
+
+    return res.status(200).send(battleArray);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
+const fetchAllUsersBattlesCount = async (req, res) => {
+  const userID = req.params.id;
+
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .select(
+        "battles.id",
+        "battles.date",
+        "armies.name",
+        "combatants.army_id"
+      );
+
+    return res.status(200).send({ count: battleArray.length });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
+const fetchUsersCompletedBattlesCount = async (req, res) => {
+  const userID = req.params.id;
+
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .andWhere({ status: "submitted" });
+
+    return res.status(200).send({ count: battleArray.length });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+const fetchUsersUpcomingBattlesCount = async (req, res) => {
+  const userID = req.params.id;
+  const date = Date.now();
+
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .andWhere("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
+      .andWhere({ status: null });
+
+    return res.status(200).send({ count: battleArray.length });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
 module.exports = {
   multiplayerKnexInsert,
   singleToMultiCombatantUpdate,
@@ -281,4 +426,10 @@ module.exports = {
   fetchFiveCompletedBattles,
   battleResultFantasy,
   battleResultFortyK,
+  fetchUsersUpcomingBattles,
+  fetchUsersCompletedBattles,
+  fetchAllUsersBattles,
+  fetchAllUsersBattlesCount,
+  fetchUsersUpcomingBattlesCount,
+  fetchUsersCompletedBattlesCount,
 };

@@ -31,6 +31,8 @@ const {
   fetchAllUsersBattlesCount,
   fetchUsersUpcomingBattlesCount,
   fetchUsersCompletedBattlesCount,
+  fetchUsersWinCount,
+  fetchUsersWinPercent,
 } = require("../controllers/battles-controller");
 
 router.route("/create").post(async (req, res) => {
@@ -142,6 +144,8 @@ router.route("/upcoming").get(fetchUpcomingBattles);
 router.route("/upcoming/5").get(fetchFiveUpcomingBattles);
 router.route("/completed").get(fetchCompletedBattles);
 router.route("/completed/5").get(fetchFiveCompletedBattles);
+router.route("/:id/win/percent").get(fetchUsersWinPercent);
+router.route("/:id/win/count").get(fetchUsersWinCount);
 router.route("/:id/all").get(fetchAllUsersBattles);
 router.route("/:id/all/count").get(fetchAllUsersBattlesCount);
 router.route("/:id/upcoming").get(fetchUsersUpcomingBattles);

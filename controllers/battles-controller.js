@@ -407,6 +407,84 @@ const fetchUsersUpcomingBattlesCount = async (req, res) => {
   }
 };
 
+const fetchUsersWinCount = async (req, res) => {
+  const userID = req.params.id;
+  const date = Date.now();
+
+  try {
+    const winArray = knex("battles")
+      .crossJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .where({ status: "submitted" })
+      .select("battles.winner", "combatants.army_id", "combatants.id")
+      .as("wins");
+
+    const winnerCountArray = (await winArray)
+      .map((win) => {
+        if (win.winner === win.id) {
+          return true;
+        } else {
+          return;
+        }
+      })
+      .filter((bool) => bool === true);
+
+    return res.status(200).send({ count: winnerCountArray.length });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
+const fetchUsersWinPercent = async (req, res) => {
+  const userID = req.params.id;
+  const date = Date.now();
+
+  try {
+    const winArray = await knex("battles")
+      .crossJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", userID)
+      .where({ status: "submitted" })
+      .select("battles.winner", "combatants.army_id", "combatants.id")
+      .as("wins");
+
+    const winnerCountArray = winArray
+      .map((win) => {
+        if (win.winner === win.id) {
+          return true;
+        } else {
+          return;
+        }
+      })
+      .filter((bool) => bool === true);
+
+    if (winnerCountArray.length === 0) {
+      return res.status(200).send({ percent: 0 });
+    }
+
+    let winPercent = Math.round(
+      (winnerCountArray.length / winArray.length) * 100
+    );
+
+    return res.status(200).send({ percent: winPercent });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
 module.exports = {
   multiplayerKnexInsert,
   singleToMultiCombatantUpdate,
@@ -431,5 +509,7 @@ module.exports = {
   fetchAllUsersBattles,
   fetchAllUsersBattlesCount,
   fetchUsersUpcomingBattlesCount,
+  fetchUsersWinCount,
   fetchUsersCompletedBattlesCount,
+  fetchUsersWinPercent,
 };

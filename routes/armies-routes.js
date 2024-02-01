@@ -3,6 +3,7 @@ const knex = require("knex")(require("../knexfile"));
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
+const { updateArmyField } = require("../controllers/armies-controller");
 
 require("dotenv").config();
 
@@ -43,6 +44,33 @@ router.route("/create").post(async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to create the new army");
+  }
+});
+
+router.route("/:id/update").patch(async (req, res) => {
+  const armyID = req.params.id;
+
+  const { name, type } = req.body;
+  let { emblemName, emblemID } = req.body;
+
+  const targetArmy = await knex("armies").where({ id: armyID }).first();
+
+  if (!targetArmy) {
+    return res.status(400).send(`Unable to find army with ID ${armyID}`);
+  }
+
+  try {
+    name ? await updateArmyField(armyID, "name", name) : name;
+    type ? await updateArmyField(armyID, "type", type) : type;
+    emblemName
+      ? await updateArmyField(armyID, "emblem", emblemName)
+      : emblemName;
+    emblemID ? await updateArmyField(armyID, "emblem_id", emblemID) : emblemID;
+
+    res.status(200).send(await knex("armies").where({ id: armyID }).first());
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to update army");
   }
 });
 

@@ -3,7 +3,10 @@ const knex = require("knex")(require("../knexfile"));
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
-const { updateArmyField } = require("../controllers/armies-controller");
+const {
+  updateArmyField,
+  addNewArmyRanking,
+} = require("../controllers/armies-controller");
 
 require("dotenv").config();
 
@@ -73,5 +76,7 @@ router.route("/:id/update").patch(async (req, res) => {
     res.status(400).send("Unable to update army");
   }
 });
+
+router.route("/:id/ranking").post(addNewArmyRanking);
 
 module.exports = router;

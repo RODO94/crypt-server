@@ -138,7 +138,7 @@ router.route("/reset").post(async (req, res) => {
   }
 });
 
-router.route("/reset/:id").patch(async (req, res) => {
+router.route("/:id/reset").patch(async (req, res) => {
   const { password } = req.body;
 
   if (!password) {
@@ -173,7 +173,7 @@ router.route("/reset/:id").patch(async (req, res) => {
   }
 });
 
-router.route("/admin/:id").patch(async (req, res) => {
+router.route("/:id/admin").patch(async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -192,7 +192,7 @@ router.route("/admin/:id").patch(async (req, res) => {
   }
 });
 
-router.route("/deactivate/:id").patch(async (req, res) => {
+router.route("/:id/deactivate").patch(async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -211,7 +211,7 @@ router.route("/deactivate/:id").patch(async (req, res) => {
   }
 });
 
-router.route("/user/:id").patch(async (req, res) => {
+router.route("/:id/user").patch(async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -230,7 +230,7 @@ router.route("/user/:id").patch(async (req, res) => {
   }
 });
 
-router.route("/edit/:id/first_name").patch(async (req, res) => {
+router.route("/:id/edit/first_name").patch(async (req, res) => {
   const { first_name } = req.body;
   const id = req.params.id;
 
@@ -257,7 +257,7 @@ router.route("/edit/:id/first_name").patch(async (req, res) => {
   }
 });
 
-router.route("/edit/:id/last_name").patch(async (req, res) => {
+router.route("/:id/edit/last_name").patch(async (req, res) => {
   const { last_name } = req.body;
   const id = req.params.id;
 
@@ -284,7 +284,7 @@ router.route("/edit/:id/last_name").patch(async (req, res) => {
   }
 });
 
-router.route("/edit/:id/email").patch(async (req, res) => {
+router.route("/:id/edit/email").patch(async (req, res) => {
   const { email } = req.body;
   const id = req.params.id;
 
@@ -311,7 +311,7 @@ router.route("/edit/:id/email").patch(async (req, res) => {
   }
 });
 
-router.route("/edit/:id/known_as").patch(async (req, res) => {
+router.route("/:id/edit/known_as").patch(async (req, res) => {
   const { known_as } = req.body;
   const id = req.params.id;
 
@@ -337,6 +337,51 @@ router.route("/edit/:id/known_as").patch(async (req, res) => {
     res
       .status(400)
       .send("An error has arisen, please check the details and connection");
+  }
+});
+
+router.route("/:id/rankings").get(async (req, res) => {
+  const userID = req.params.id;
+
+  try {
+    const userObj = await knex("users").where({ id: userID }).first();
+    if (!userObj) {
+      return res
+        .status(400)
+        .send("User cannot be found, please check the ID provided");
+    }
+
+    const fortySubquery = knex("rank")
+      .join("armies", "rank.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
+      .where({ "armies.type": "40k", "users.id": userID })
+      .as("fortyranks");
+
+    const fortyQuery = knex(fortySubquery)
+      .select("name", "known_as", "ranking", "rn")
+      .where("rn", 1)
+      .orderBy("ranking", "desc");
+
+    const fantasySubquery = knex("rank")
+      .join("armies", "rank.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .rowNumber("fn", { column: "date", order: "desc" }, "army_id")
+      .where({ "armies.type": "fantasy", "users.id": userID })
+      .as("fantasyranks");
+
+    const fantasyQuery = knex(fantasySubquery)
+      .select("name", "known_as", "ranking", "fn")
+      .where("fn", 1)
+      .orderBy("ranking", "desc");
+    res
+      .status(200)
+      .send({ fortyK: await fortyQuery, fantasy: await fantasyQuery });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve rankings");
   }
 });
 

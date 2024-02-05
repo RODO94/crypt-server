@@ -36,8 +36,17 @@ const {
 } = require("../controllers/battles-controller");
 
 router.route("/create").post(async (req, res) => {
-  let { points_size, battle_type, player_type, player_1, player_2, date } =
-    req.body;
+  let {
+    points_size,
+    battle_type,
+    player_type,
+    player_1,
+    player_2,
+    date,
+    start,
+    finish,
+    table,
+  } = req.body;
 
   if (
     !points_size |
@@ -45,7 +54,9 @@ router.route("/create").post(async (req, res) => {
     !player_type |
     !player_1 |
     !player_2 |
-    !date
+    !date |
+    !start |
+    !finish
   ) {
     return res
       .status(400)
@@ -89,12 +100,15 @@ router.route("/create").post(async (req, res) => {
     }
     const newBattleObj = {
       id: crypto.randomUUID(),
-      date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
+      date: dayjs(date).format("YYYY-MM-DD"),
       player_type,
       battle_type,
       points_size,
       player_1_id: playerOneID,
       player_2_id: playerTwoID,
+      start: start,
+      finish: finish,
+      table,
     };
 
     try {
@@ -122,12 +136,15 @@ router.route("/create").post(async (req, res) => {
 
       const newBattleObj = {
         id: crypto.randomUUID(),
-        date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
+        date: dayjs(date).format("YYYY-MM-DD"),
         player_type,
         battle_type,
         points_size,
         player_1_id: playerOneID,
         player_2_id: playerTwoID,
+        start: start,
+        finish: finish,
+        table,
       };
 
       await knex("battles").insert(newBattleObj);
@@ -207,17 +224,73 @@ router.route("/:id/edit/date").patch(async (req, res) => {
   try {
     await knex("battles")
       .where({ id: battleID })
-      .update({ date: dayjs(date).format("YYYY-MM-DD HH:mm:ss") });
+      .update({ date: dayjs(date).format("YYYY-MM-DD") });
     res
       .status(200)
       .send(
         `Date has been updated from ${oldDate.date} to ${dayjs(date).format(
-          "YYYY-MM-DD HH:mm:ss"
+          "YYYY-MM-DD"
         )}`
       );
   } catch (error) {
     console.error(error);
     res.status(400).send("Issue with altering date in the database");
+  }
+});
+router.route("/:id/edit/start").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { start } = req.body;
+
+  const oldStart = await knex("battles")
+    .where({ id: battleID })
+    .first()
+    .select("start");
+  try {
+    await knex("battles").where({ id: battleID }).update({ start: start });
+    res
+      .status(200)
+      .send(`Start time has been updated from ${oldStart.start} to ${start}`);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Issue with altering Start Time in the database");
+  }
+});
+router.route("/:id/edit/finish").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { finish } = req.body;
+
+  const oldFinish = await knex("battles")
+    .where({ id: battleID })
+    .first()
+    .select("finish");
+  try {
+    await knex("battles").where({ id: battleID }).update({ finish: finish });
+    res
+      .status(200)
+      .send(
+        `Finish time has been updated from ${oldFinish.finish} to ${finish}`
+      );
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Issue with altering Finish Time in the database");
+  }
+});
+router.route("/:id/edit/table").patch(async (req, res) => {
+  const battleID = req.params.id;
+  const { table } = req.body;
+
+  const oldTable = await knex("battles")
+    .where({ id: battleID })
+    .first()
+    .select("table");
+  try {
+    await knex("battles").where({ id: battleID }).update({ table: table });
+    res
+      .status(200)
+      .send(`Date has been updated from ${oldTable.table} to ${table}`);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Issue with altering Table in the database");
   }
 });
 router.route("/:id/edit/gametype").patch(async (req, res) => {
@@ -305,9 +378,6 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
     battleToChange.player_type === "single" &&
     (player_1.length > 1) | (player_2.length > 1)
   ) {
-    // The case where the game is single but they have added another player
-    // making it multiplayer.
-    //   Player ID's would need to switch to Team IDs, update the combatants
     try {
       const teamOneID = crypto.randomUUID();
       const teamTwoID = crypto.randomUUID();
@@ -345,8 +415,6 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
     player_1.length === 1 &&
     player_2.length === 1
   ) {
-    // Check what has changed
-    // Alter the army_id of the combatant
     try {
       if (player_1.id !== prevPlayerOneID) {
         await knex("combatants")

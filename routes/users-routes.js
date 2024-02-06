@@ -5,6 +5,7 @@ const knex = require("knex")(require("../knexfile"));
 const crypto = require("crypto");
 const router = express.Router();
 const nodemailer = require("nodemailer");
+const { adminAuth, headerAuth } = require("../middleware/auth");
 
 require("dotenv").config();
 
@@ -173,7 +174,7 @@ router.route("/:id/reset").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/admin").patch(async (req, res) => {
+router.route("/:id/admin").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -192,7 +193,7 @@ router.route("/:id/admin").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/deactivate").patch(async (req, res) => {
+router.route("/:id/deactivate").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -211,7 +212,7 @@ router.route("/:id/deactivate").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/user").patch(async (req, res) => {
+router.route("/:id/user").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -230,7 +231,7 @@ router.route("/:id/user").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/edit/first_name").patch(async (req, res) => {
+router.route("/:id/edit/first_name").patch(headerAuth, async (req, res) => {
   const { first_name } = req.body;
   const id = req.params.id;
 
@@ -257,7 +258,7 @@ router.route("/:id/edit/first_name").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/edit/last_name").patch(async (req, res) => {
+router.route("/:id/edit/last_name").patch(headerAuth, async (req, res) => {
   const { last_name } = req.body;
   const id = req.params.id;
 
@@ -284,7 +285,7 @@ router.route("/:id/edit/last_name").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/edit/email").patch(async (req, res) => {
+router.route("/:id/edit/email").patch(headerAuth, async (req, res) => {
   const { email } = req.body;
   const id = req.params.id;
 
@@ -311,7 +312,7 @@ router.route("/:id/edit/email").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/edit/known_as").patch(async (req, res) => {
+router.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
   const { known_as } = req.body;
   const id = req.params.id;
 
@@ -340,7 +341,7 @@ router.route("/:id/edit/known_as").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/rankings").get(async (req, res) => {
+router.route("/:id/rankings").get(headerAuth, async (req, res) => {
   const userID = req.params.id;
 
   try {

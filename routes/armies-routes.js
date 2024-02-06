@@ -7,10 +7,11 @@ const {
   updateArmyField,
   addNewArmyRanking,
 } = require("../controllers/armies-controller");
+const { headerAuth, adminAuth } = require("../middleware/auth");
 
 require("dotenv").config();
 
-router.route("/create").post(async (req, res) => {
+router.route("/create").post(headerAuth, async (req, res) => {
   const { name, type, userID } = req.body;
   let { emblemName, emblemID } = req.body;
 
@@ -50,7 +51,7 @@ router.route("/create").post(async (req, res) => {
   }
 });
 
-router.route("/:id/update").patch(async (req, res) => {
+router.route("/:id/update").patch(headerAuth, async (req, res) => {
   const armyID = req.params.id;
 
   const { name, type } = req.body;
@@ -77,6 +78,6 @@ router.route("/:id/update").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/ranking").post(addNewArmyRanking);
+router.route("/:id/ranking").post(adminAuth, addNewArmyRanking);
 
 module.exports = router;

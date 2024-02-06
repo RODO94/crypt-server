@@ -34,8 +34,9 @@ const {
   fetchUsersWinCount,
   fetchUsersWinPercent,
 } = require("../controllers/battles-controller");
+const { headerAuth, adminAuth } = require("../middleware/auth");
 
-router.route("/create").post(async (req, res) => {
+router.route("/create").post(headerAuth, async (req, res) => {
   let {
     points_size,
     battle_type,
@@ -131,8 +132,12 @@ router.route("/create").post(async (req, res) => {
     await multiplayerKnexInsert(player_2, playerTwoID);
 
     try {
-      const teamOne = await knex("combatants").where({ team_id: playerOneID });
-      const teamTwo = await knex("combatants").where({ team_id: playerTwoID });
+      const teamOne = await knex("combatants").where({
+        team_id: playerOneID,
+      });
+      const teamTwo = await knex("combatants").where({
+        team_id: playerTwoID,
+      });
 
       const newBattleObj = {
         id: crypto.randomUUID(),
@@ -170,7 +175,7 @@ router.route("/:id/upcoming/count").get(fetchUsersUpcomingBattlesCount);
 router.route("/:id/completed").get(fetchUsersCompletedBattles);
 router.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);
 
-router.route("/:id/edit/pointsize").patch(async (req, res) => {
+router.route("/:id/edit/pointsize").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { points_size } = req.body;
   const oldPointsSize = await knex("battles")
@@ -191,7 +196,7 @@ router.route("/:id/edit/pointsize").patch(async (req, res) => {
     res.status(400).send("Issue with altering points size in the database");
   }
 });
-router.route("/:id/edit/scenario").patch(async (req, res) => {
+router.route("/:id/edit/scenario").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { scenario } = req.body;
 
@@ -213,7 +218,7 @@ router.route("/:id/edit/scenario").patch(async (req, res) => {
     res.status(400).send("Issue with altering scenario in the database");
   }
 });
-router.route("/:id/edit/date").patch(async (req, res) => {
+router.route("/:id/edit/date").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { date } = req.body;
 
@@ -237,7 +242,7 @@ router.route("/:id/edit/date").patch(async (req, res) => {
     res.status(400).send("Issue with altering date in the database");
   }
 });
-router.route("/:id/edit/start").patch(async (req, res) => {
+router.route("/:id/edit/start").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { start } = req.body;
 
@@ -255,7 +260,7 @@ router.route("/:id/edit/start").patch(async (req, res) => {
     res.status(400).send("Issue with altering Start Time in the database");
   }
 });
-router.route("/:id/edit/finish").patch(async (req, res) => {
+router.route("/:id/edit/finish").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { finish } = req.body;
 
@@ -275,7 +280,7 @@ router.route("/:id/edit/finish").patch(async (req, res) => {
     res.status(400).send("Issue with altering Finish Time in the database");
   }
 });
-router.route("/:id/edit/table").patch(async (req, res) => {
+router.route("/:id/edit/table").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { table } = req.body;
 
@@ -293,7 +298,7 @@ router.route("/:id/edit/table").patch(async (req, res) => {
     res.status(400).send("Issue with altering Table in the database");
   }
 });
-router.route("/:id/edit/gametype").patch(async (req, res) => {
+router.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { battle_type, player_type } = req.body;
 
@@ -359,7 +364,7 @@ router.route("/:id/edit/gametype").patch(async (req, res) => {
       );
   }
 });
-router.route("/:id/edit/combatants").patch(async (req, res) => {
+router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { player_1, player_2 } = req.body;
 
@@ -496,7 +501,7 @@ router.route("/:id/edit/combatants").patch(async (req, res) => {
     }
   }
 });
-router.route("/:id/edit/points_1").patch(async (req, res) => {
+router.route("/:id/edit/points_1").patch(headerAuth, async (req, res) => {
   const { points } = req.body;
   const battleID = req.params.id;
 
@@ -528,7 +533,7 @@ router.route("/:id/edit/points_1").patch(async (req, res) => {
     res.status(400).send("Unable to update the battle");
   }
 });
-router.route("/:id/edit/points_2").patch(async (req, res) => {
+router.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
   const { points } = req.body;
   const battleID = req.params.id;
 
@@ -561,7 +566,7 @@ router.route("/:id/edit/points_2").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/delete").delete(async (req, res) => {
+router.route("/:id/delete").delete(adminAuth, async (req, res) => {
   const battleID = req.params.id;
   const battleObj = await knex("battles").where({ id: battleID }).first();
   try {
@@ -576,7 +581,150 @@ router.route("/:id/delete").delete(async (req, res) => {
   }
 });
 
-router.route("/:id/submit").post(async (req, res) => {
+router.route("/:id/submit").post(headerAuth, async (req, res) => {
+  const battleID = req.params.id;
+
+  const battleObj = await knex("battles").where({ id: battleID }).first();
+
+  if (!battleObj) {
+    return res.status(400).send("Unable to find the battle");
+  }
+
+  if (!battleObj.player_1_points | (battleObj.player_1_points === 0)) {
+    return res.status(400).send("Please add points for Player 1");
+  }
+
+  if (!battleObj.player_2_points | (battleObj.player_2_points === 0)) {
+    return res.status(400).send("Please add points for Player 2");
+  }
+
+  let battleWinner = null;
+  let finalResult = null;
+
+  battleObj.battle_type === "fantasy"
+    ? (finalResult = battleResultFantasy(
+        battleObj.points_size,
+        battleObj.player_1_points,
+        battleObj.player_2_points
+      ))
+    : battleObj.battle_type === "40k"
+    ? (finalResult = battleResultFortyK(
+        battleObj.player_1_points,
+        battleObj.player_2_points
+      ))
+    : (finalResult = "undefined");
+
+  battleObj.player_1_points > battleObj.player_2_points
+    ? (battleWinner = battleObj.player_1_id)
+    : battleObj.player_1_points < battleObj.player_2_points
+    ? (battleWinner = battleObj.player_2_id)
+    : (battleWinner = "draw");
+
+  if (battleObj.player_type === "multi") {
+    try {
+      await knex("battles").where({ id: battleID }).update({
+        status: "submitted",
+        winner: battleWinner,
+        result: finalResult,
+      });
+
+      return res
+        .status(200)
+        .send(await knex("battles").where({ id: battleID }).first());
+    } catch (error) {
+      console.error(error);
+      res.status(400).send("Unable to submit the battle");
+    }
+  }
+
+  try {
+    const armyOne = await fetchBattleCombatantArmy(battleObj.player_1_id, 1);
+    const armyTwo = await fetchBattleCombatantArmy(battleObj.player_2_id, 2);
+
+    const rankOne = await fetchRecentArmyRank(armyOne.army_id);
+    const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
+
+    if (finalResult === "draw") {
+      const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
+
+      const newRankOne =
+        Number(rankOne.ranking) + Number(rankChangeObj.rankChangeOne);
+      const newRankTwo =
+        Number(rankTwo.ranking) + Number(rankChangeObj.rankChangeTwo);
+
+      const rankChangeOneObj = await createNewRank(
+        newRankOne,
+        armyOne.army_id,
+        battleObj.battle_type
+      );
+
+      const rankChangeTwoObj = await createNewRank(
+        newRankTwo,
+        armyTwo.army_id,
+        battleObj.battle_type
+      );
+
+      res
+        .status(200)
+        .send({ playerOne: rankChangeOneObj, playerTwo: rankChangeTwoObj });
+    } else if (
+      finalResult === "victory" &&
+      battleWinner === battleObj.player_1_id
+    ) {
+      const rankChangeWinner = rankChangeWin(rankOne.ranking, rankTwo.ranking);
+      const rankChangeLoser = rankChangeLoss(rankTwo.ranking, rankOne.ranking);
+
+      const newRankWinner = Number(rankOne.ranking) + Number(rankChangeWinner);
+      const newRankLoser = Number(rankTwo.ranking) + Number(rankChangeLoser);
+
+      const newWinnerRankObj = await createNewRank(
+        newRankWinner,
+        armyOne.army_id,
+        battleObj.battle_type
+      );
+
+      const newLoserRankObj = await createNewRank(
+        newRankLoser,
+        armyTwo.army_id,
+        battleObj.battle_type
+      );
+
+      res
+        .status(200)
+        .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
+    } else if (
+      finalResult === "victory" &&
+      battleWinner === battleObj.player_2_id
+    ) {
+      const rankChangeWinner = rankChangeWin(rankTwo.ranking, rankOne.ranking);
+      const rankChangeLoser = rankChangeLoss(rankOne.ranking, rankTwo.ranking);
+
+      const newRankWinner = Number(rankTwo.ranking) + Number(rankChangeWinner);
+      const newRankLoser = Number(rankOne.ranking) + Number(rankChangeLoser);
+
+      const newWinnerRankObj = await createNewRank(
+        newRankWinner,
+        armyTwo.army_id,
+        battleObj.battle_type
+      );
+
+      const newLoserRankObj = await createNewRank(
+        newRankLoser,
+        armyOne.army_id,
+        battleObj.battle_type
+      );
+
+      res
+        .status(200)
+        .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to submit battle");
+  }
+});
+
+router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
   const battleID = req.params.id;
 
   const battleObj = await knex("battles").where({ id: battleID }).first();

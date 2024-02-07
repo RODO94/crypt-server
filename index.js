@@ -14,7 +14,7 @@ const armiesRoutes = require("./routes/armies-routes");
 app.use(express.json());
 app.use(cors());
 
-app.use("/").get((req, res) => {
+app.get("/", (req, res) => {
   res.send("Hello World");
 });
 

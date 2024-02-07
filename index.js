@@ -14,6 +14,10 @@ const armiesRoutes = require("./routes/armies-routes");
 app.use(express.json());
 app.use(cors());
 
+app.use("/").get((req, res) => {
+  res.send(<h1>Hello World</h1>);
+});
+
 app.use("/users", userRoutes);
 app.use("/battles", battlesRoutes);
 app.use("/rankings", rankingsRoutes);

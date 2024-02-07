@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
+const { battleFormatting } = require("../utils/ArrayMethods");
 
 const multiplayerKnexInsert = async (playerArray, teamID) => {
   teamArray = [];
@@ -121,9 +122,6 @@ const rankChangeDraw = (rankOne, rankTwo) => {
 
   const rankOneDiff = rankTwo - rankOne;
 
-  // If -10 : Rc is -1
-  // if 10 : Rc is 1
-
   (rankOneDiff <= -10) | (rankOneDiff >= 10)
     ? (rankChangeOne = 1)
     : (rankChangeOne = rankOneDiff * 0.1);
@@ -204,7 +202,9 @@ const fetchAllBattles = async (req, res) => {
   try {
     const battleArray = await knex("battles");
 
-    res.status(200).send(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
@@ -216,8 +216,9 @@ const fetchUpcomingBattles = async (req, res) => {
     const battleArray = await knex("battles")
       .where("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
       .andWhere({ status: null });
+    const formattedBattleArray = await battleFormatting(battleArray);
 
-    res.status(200).send(battleArray);
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
@@ -227,7 +228,9 @@ const fetchCompletedBattles = async (req, res) => {
   try {
     const battleArray = await knex("battles").where({ status: "submitted" });
 
-    res.status(200).send(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
@@ -238,11 +241,21 @@ const fetchFiveUpcomingBattles = async (req, res) => {
   try {
     const date = Date.now();
     const battleArray = await knex("battles")
-      .where("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
+      .where("battles.date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
       .andWhere({ status: null })
+      .select(
+        "id",
+        "date",
+        "battle_type",
+        "player_type",
+        "player_1_id",
+        "player_2_id"
+      )
       .limit(5);
 
-    res.status(200).send(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
@@ -255,7 +268,9 @@ const fetchFiveCompletedBattles = async (req, res) => {
       .orderBy("date", "desc")
       .limit(5);
 
-    res.status(200).send(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");

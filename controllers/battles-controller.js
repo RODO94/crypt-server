@@ -1,7 +1,10 @@
 const crypto = require("crypto");
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
-const { battleFormatting } = require("../utils/ArrayMethods");
+const {
+  battleFormatting,
+  CompletedBattleFormatting,
+} = require("../utils/ArrayMethods");
 
 const multiplayerKnexInsert = async (playerArray, teamID) => {
   teamArray = [];
@@ -202,7 +205,7 @@ const fetchAllBattles = async (req, res) => {
   try {
     const battleArray = await knex("battles");
 
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -228,7 +231,7 @@ const fetchCompletedBattles = async (req, res) => {
   try {
     const battleArray = await knex("battles").where({ status: "submitted" });
 
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -268,7 +271,7 @@ const fetchFiveCompletedBattles = async (req, res) => {
       .orderBy("date", "desc")
       .limit(5);
 
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -294,7 +297,9 @@ const fetchUsersUpcomingBattles = async (req, res) => {
       .andWhere("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
       .andWhere({ status: null });
 
-    return res.status(200).send(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");
@@ -316,7 +321,9 @@ const fetchUsersCompletedBattles = async (req, res) => {
       .where("users.id", "=", userID)
       .andWhere({ status: "submitted" });
 
-    return res.status(200).send(battleArray);
+    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");
@@ -343,7 +350,9 @@ const fetchAllUsersBattles = async (req, res) => {
         "combatants.army_id"
       );
 
-    return res.status(200).send(battleArray);
+    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+
+    res.status(200).send(formattedBattleArray);
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");

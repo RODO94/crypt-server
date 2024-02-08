@@ -243,9 +243,11 @@ const fetchCompletedBattles = async (req, res) => {
 const fetchFiveUpcomingBattles = async (req, res) => {
   try {
     const date = Date.now();
+    console.log(dayjs(date).format("YYYY-MM-DD HH:mm:ss"));
     const battleArray = await knex("battles")
       .where("battles.date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
       .andWhere({ status: null })
+      .orderBy("date", "asc")
       .select(
         "id",
         "date",

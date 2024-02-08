@@ -9,18 +9,25 @@ const battleFormatting = async (array) => {
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
       .as("ranks");
 
+    console.log(array);
+
     const promiseBattleArray = array.map(async (battle) => {
       let newDate = dayjs(battle.date).format("YYYY-MM-DD");
       let playerOneObj = await knex("combatants")
         .where({ "combatants.id": battle.player_1_id })
+        .orWhere({ "combatants.team_id": battle.player_1_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
         .select("armies.name", "users.known_as", "armies.id");
+      console.log(playerOneObj);
+
       let playerTwoObj = await knex("combatants")
         .where({ "combatants.id": battle.player_2_id })
+        .orWhere({ "combatants.team_id": battle.player_2_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
         .select("armies.name", "users.known_as", "armies.id");
+      console.log(playerTwoObj);
 
       const playerOneArray = playerOneObj.map(async (player) => {
         let playerRankQuery = knex(subquery)

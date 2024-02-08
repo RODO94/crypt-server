@@ -5,26 +5,40 @@ const fetchAllRankings = async (req, res) => {
     const fortySubquery = knex("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
-      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .select(
+        "army_id",
+        "date",
+        "ranking",
+        "armies.name",
+        "users.known_as",
+        "prev_ranking"
+      )
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
       .where({ "armies.type": "40k" })
       .as("fortyranks");
 
     const fortyQuery = knex(fortySubquery)
-      .select("name", "known_as", "ranking", "rn")
+      .select("name", "known_as", "ranking", "rn", "prev_ranking")
       .where("rn", 1)
       .orderBy("ranking", "desc");
 
     const fantasySubquery = knex("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
-      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .select(
+        "army_id",
+        "date",
+        "ranking",
+        "armies.name",
+        "users.known_as",
+        "prev_ranking"
+      )
       .rowNumber("fn", { column: "date", order: "desc" }, "army_id")
       .where({ "armies.type": "fantasy" })
       .as("fantasyranks");
 
     const fantasyQuery = knex(fantasySubquery)
-      .select("name", "known_as", "ranking", "fn")
+      .select("name", "known_as", "ranking", "fn", "prev_ranking")
       .where("fn", 1)
       .orderBy("ranking", "desc");
 
@@ -42,13 +56,20 @@ const fetchTopFiveRanking = async (req, res) => {
     const fortySubquery = knex("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
-      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .select(
+        "army_id",
+        "date",
+        "ranking",
+        "armies.name",
+        "users.known_as",
+        "prev_ranking"
+      )
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
       .where({ "armies.type": "40k" })
       .as("fortyranks");
 
     const fortyQuery = knex(fortySubquery)
-      .select("name", "known_as", "ranking", "rn")
+      .select("name", "known_as", "ranking", "rn", "prev_ranking")
       .where("rn", 1)
       .orderBy("ranking", "desc")
       .limit(5);
@@ -56,13 +77,20 @@ const fetchTopFiveRanking = async (req, res) => {
     const fantasySubquery = knex("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
-      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .select(
+        "army_id",
+        "date",
+        "ranking",
+        "armies.name",
+        "users.known_as",
+        "prev_ranking"
+      )
       .rowNumber("fn", { column: "date", order: "desc" }, "army_id")
       .where({ "armies.type": "fantasy" })
       .as("fantasyranks");
 
     const fantasyQuery = knex(fantasySubquery)
-      .select("name", "known_as", "ranking", "fn")
+      .select("name", "known_as", "ranking", "fn", "prev_ranking")
       .where("fn", 1)
       .orderBy("ranking", "desc")
       .limit(5);

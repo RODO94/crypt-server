@@ -18,7 +18,7 @@ const fetchAllRankings = async (req, res) => {
       .as("fortyranks");
 
     const fortyQuery = knex(fortySubquery)
-      .select("name", "known_as", "ranking", "rn", "prev_ranking")
+      .select("name", "known_as", "ranking", "rn", "prev_ranking", "army_id")
       .where("rn", 1)
       .orderBy("ranking", "desc");
 
@@ -38,7 +38,7 @@ const fetchAllRankings = async (req, res) => {
       .as("fantasyranks");
 
     const fantasyQuery = knex(fantasySubquery)
-      .select("name", "known_as", "ranking", "fn", "prev_ranking")
+      .select("name", "known_as", "ranking", "fn", "prev_ranking", "army_id")
       .where("fn", 1)
       .orderBy("ranking", "desc");
 
@@ -69,7 +69,7 @@ const fetchTopFiveRanking = async (req, res) => {
       .as("fortyranks");
 
     const fortyQuery = knex(fortySubquery)
-      .select("name", "known_as", "ranking", "rn", "prev_ranking")
+      .select("name", "known_as", "ranking", "rn", "prev_ranking", "army_id")
       .where("rn", 1)
       .orderBy("ranking", "desc")
       .limit(5);
@@ -90,7 +90,7 @@ const fetchTopFiveRanking = async (req, res) => {
       .as("fantasyranks");
 
     const fantasyQuery = knex(fantasySubquery)
-      .select("name", "known_as", "ranking", "fn", "prev_ranking")
+      .select("name", "known_as", "ranking", "fn", "prev_ranking", "army_id")
       .where("fn", 1)
       .orderBy("ranking", "desc")
       .limit(5);

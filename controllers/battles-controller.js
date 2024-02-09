@@ -243,7 +243,6 @@ const fetchCompletedBattles = async (req, res) => {
 const fetchFiveUpcomingBattles = async (req, res) => {
   try {
     const date = Date.now();
-    console.log(dayjs(date).format("YYYY-MM-DD HH:mm:ss"));
     const battleArray = await knex("battles")
       .where("battles.date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
       .andWhere({ status: null })
@@ -251,6 +250,9 @@ const fetchFiveUpcomingBattles = async (req, res) => {
       .select(
         "id",
         "date",
+        "start",
+        "finish",
+        "table",
         "battle_type",
         "player_type",
         "player_1_id",
@@ -305,6 +307,21 @@ const fetchUsersUpcomingBattles = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");
+  }
+};
+
+const fetchOneBattle = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const battleObj = await knex("battles").where({ id: id }).first();
+    if (!battleObj) {
+      res.status(400).send("We can't find the battle you are looking for");
+    }
+    res.status(200).send(battleObj);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("We are unable to find your battle right now");
   }
 };
 
@@ -538,4 +555,5 @@ module.exports = {
   fetchUsersWinCount,
   fetchUsersCompletedBattlesCount,
   fetchUsersWinPercent,
+  fetchOneBattle,
 };

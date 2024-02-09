@@ -13,6 +13,25 @@ const updateArmyField = async (armyID, fieldName, newValue) => {
   }
 };
 
+const fetchOneArmy = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const armyObj = await knex("armies").where({ id: id }).first();
+
+    if (!armyObj) {
+      return res
+        .status(400)
+        .send("We cannot find the army you are looking for");
+    }
+
+    res.status(200).send(armyObj);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("We cannot process your request right now");
+  }
+};
+
 const addNewArmyRanking = async (req, res) => {
   const armyID = req.params.id;
   const { newRank } = req.body;
@@ -62,4 +81,4 @@ const addNewArmyRanking = async (req, res) => {
   }
 };
 
-module.exports = { updateArmyField, addNewArmyRanking };
+module.exports = { updateArmyField, addNewArmyRanking, fetchOneArmy };

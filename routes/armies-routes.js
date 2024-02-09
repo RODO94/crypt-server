@@ -6,6 +6,7 @@ const dayjs = require("dayjs");
 const {
   updateArmyField,
   addNewArmyRanking,
+  fetchOneArmy,
 } = require("../controllers/armies-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
@@ -50,6 +51,8 @@ router.route("/create").post(headerAuth, async (req, res) => {
     res.status(400).send("Unable to create the new army");
   }
 });
+
+router.route("/:id").get(fetchOneArmy);
 
 router.route("/:id/update").patch(headerAuth, async (req, res) => {
   const armyID = req.params.id;

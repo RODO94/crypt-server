@@ -33,6 +33,7 @@ const {
   fetchUsersCompletedBattlesCount,
   fetchUsersWinCount,
   fetchUsersWinPercent,
+  fetchOneBattle,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
@@ -166,6 +167,7 @@ router.route("/upcoming").get(fetchUpcomingBattles);
 router.route("/upcoming/5").get(fetchFiveUpcomingBattles);
 router.route("/completed").get(fetchCompletedBattles);
 router.route("/completed/5").get(fetchFiveCompletedBattles);
+router.route("/:id").get(fetchOneBattle);
 router.route("/:id/win/percent").get(fetchUsersWinPercent);
 router.route("/:id/win/count").get(fetchUsersWinCount);
 router.route("/:id/all").get(fetchAllUsersBattles);

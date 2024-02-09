@@ -17,7 +17,6 @@ const battleFormatting = async (array) => {
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
         .select("armies.name", "users.known_as", "armies.id");
-      console.log(playerOneObj);
 
       let playerTwoObj = await knex("combatants")
         .where({ "combatants.id": battle.player_2_id })
@@ -25,7 +24,6 @@ const battleFormatting = async (array) => {
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
         .select("armies.name", "users.known_as", "armies.id");
-      console.log(playerTwoObj);
 
       const playerOneArray = playerOneObj.map(async (player) => {
         let playerRankQuery = knex(subquery)
@@ -64,6 +62,9 @@ const battleFormatting = async (array) => {
       let newBattleObj = {
         id: battle.id,
         date: newDate,
+        start: battle.start,
+        finish: battle.finish,
+        table: battle.table,
         battle_type: battle.battle_type,
         player_type: battle.player_type,
         player_1: resolvedPlayerOne,

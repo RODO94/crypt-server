@@ -9,8 +9,6 @@ const battleFormatting = async (array) => {
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
       .as("ranks");
 
-    console.log(array);
-
     const promiseBattleArray = array.map(async (battle) => {
       let newDate = dayjs(battle.date).format("YYYY-MM-DD");
       let playerOneObj = await knex("combatants")
@@ -144,10 +142,18 @@ const CompletedBattleFormatting = async (array) => {
 
       const resolvedPlayerOne = await Promise.all(playerOneArray);
       const resolvedPlayerTwo = await Promise.all(playerTwoArray);
+      let winner = "";
+      if (battle.winner === battle.player_1_id) {
+        winner = "player one";
+      } else if (battle.winner === battle.player_2_id) {
+        winner = "player two";
+      }
 
       let newBattleObj = {
         id: battle.id,
         date: newDate,
+        winner: winner,
+        result: battle.result,
         battle_type: battle.battle_type,
         player_type: battle.player_type,
         player_1: resolvedPlayerOne,

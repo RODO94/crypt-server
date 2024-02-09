@@ -10,13 +10,14 @@ const { adminAuth, headerAuth } = require("../middleware/auth");
 require("dotenv").config();
 
 const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
+const clientURL = `${process.env.CLIENT_URL}`;
 
 const transport = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: "live.smtp.mailtrap.io",
+  port: 587,
   auth: {
-    user: "b34d99c801334f",
-    pass: "8d263e86c481fc",
+    user: "api",
+    pass: "5a616f388531139861b8e09414883af6",
   },
 });
 
@@ -105,13 +106,17 @@ router.route("/login").post(async (req, res) => {
   }
 });
 
-router.route("/reset").post(async (req, res) => {
+router.route("/forgot-password").post(async (req, res) => {
   const { email } = req.body;
-
-  const emailHTML = `<h1>Hello from Crypt</h1><p>To reset your password, please use the link below</p><a href="http://localhost:8080"> Reset Your Password </a>`;
+  const resetToken = crypto.randomUUID();
 
   try {
     const user = await knex("users").where({ email: email }).first();
+    const emailHTML = `<h1>Hello from Crypt</h1><p>To reset your password, please use the link below</p><a href="${clientURL}/reset/${resetToken}"> Reset Your Password </a>`;
+
+    await knex("users")
+      .where({ email: email })
+      .update({ "password-reset-token": resetToken });
 
     if (!user) {
       return res.status(400).send("User is not found, please check the mail");
@@ -121,7 +126,7 @@ router.route("/reset").post(async (req, res) => {
       from: "thecrypt@email.com",
       to: email,
       subject: "Reset your Crypt Password",
-      text: `To reset your password please go to: ${baseURL}/reset/${user.id}`,
+      text: `To reset your password please go to: ${clientURL}/reset/${resetToken}`,
       html: emailHTML,
     };
 
@@ -139,7 +144,7 @@ router.route("/reset").post(async (req, res) => {
   }
 });
 
-router.route("/:id/reset").patch(async (req, res) => {
+router.route("/:token/reset/:token").patch(async (req, res) => {
   const { password } = req.body;
 
   if (!password) {
@@ -148,9 +153,9 @@ router.route("/:id/reset").patch(async (req, res) => {
       .send("Please include the new password in your request");
   }
 
-  const id = req.params.id.toString();
+  const token = req.params.token.toString();
 
-  if (!id) {
+  if (!token) {
     return res.status(400).send("Invalid user ID in request parameters");
   }
 
@@ -158,7 +163,7 @@ router.route("/:id/reset").patch(async (req, res) => {
 
   try {
     const userToChange = await knex("users")
-      .where({ id: id })
+      .where({ "password-reset-token": token })
       .update({ password: hashedPassword });
 
     if (!userToChange) {

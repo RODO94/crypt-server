@@ -144,7 +144,7 @@ router.route("/forgot-password").post(async (req, res) => {
   }
 });
 
-router.route("/:token/reset/:token").patch(async (req, res) => {
+router.route("/reset/:token").patch(async (req, res) => {
   const { password } = req.body;
 
   if (!password) {

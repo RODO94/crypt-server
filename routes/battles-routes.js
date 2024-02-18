@@ -172,7 +172,7 @@ router.route("/:id/win/percent").get(fetchUsersWinPercent);
 router.route("/:id/win/count").get(fetchUsersWinCount);
 router.route("/:id/all").get(fetchAllUsersBattles);
 router.route("/:id/all/count").get(fetchAllUsersBattlesCount);
-router.route("/:id/upcoming").get(fetchUsersUpcomingBattles);
+router.route("/user/upcoming").get(fetchUsersUpcomingBattles);
 router.route("/:id/upcoming/count").get(fetchUsersUpcomingBattlesCount);
 router.route("/:id/completed").get(fetchUsersCompletedBattles);
 router.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);

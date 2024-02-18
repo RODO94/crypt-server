@@ -1,4 +1,6 @@
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
 const {
@@ -285,10 +287,17 @@ const fetchFiveCompletedBattles = async (req, res) => {
 };
 
 const fetchUsersUpcomingBattles = async (req, res) => {
-  const userID = req.params.id;
   const date = Date.now();
 
+  const authToken = req.headers.authorization.split(" ")[1];
+
   try {
+    const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+    const profile = await knex("users").where({ id: decodedToken.id }).first();
+
+    delete profile.password;
+    const userID = profile.id;
+
     const battleArray = await knex("battles")
       .innerJoin("combatants", (builder) => {
         builder
@@ -299,11 +308,23 @@ const fetchUsersUpcomingBattles = async (req, res) => {
       .join("users", "armies.user_id", "=", "users.id")
       .where("users.id", "=", userID)
       .andWhere("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
-      .andWhere({ status: null });
+      .andWhere({ status: null })
+      .select(
+        "battles.id",
+        "armies.user_id",
+        "date",
+        "start",
+        "finish",
+        "table",
+        "battle_type",
+        "player_type",
+        "player_1_id",
+        "player_2_id"
+      );
 
     const formattedBattleArray = await battleFormatting(battleArray);
 
-    res.status(200).send(formattedBattleArray);
+    res.status(200).send({ user: profile, battleArray: formattedBattleArray });
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");

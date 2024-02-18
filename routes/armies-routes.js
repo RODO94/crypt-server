@@ -45,6 +45,14 @@ router.route("/create").post(headerAuth, async (req, res) => {
   try {
     await knex("armies").insert(newArmyObj);
 
+    await knex("rank").insert({
+      id: crypto.randomUUID(),
+      date: dayjs(Date.now()).format("YY-MM-DD"),
+      ranking: 30,
+      army_id: newArmyID,
+      prev_ranking: 99,
+    });
+
     return res.status(200).send(newArmyObj);
   } catch (error) {
     console.error(error);

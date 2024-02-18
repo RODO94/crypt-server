@@ -16,14 +16,14 @@ const battleFormatting = async (array) => {
         .orWhere({ "combatants.team_id": battle.player_1_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.name", "users.known_as", "armies.id");
+        .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
 
       let playerTwoObj = await knex("combatants")
         .where({ "combatants.id": battle.player_2_id })
         .orWhere({ "combatants.team_id": battle.player_2_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.name", "users.known_as", "armies.id");
+        .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
 
       const playerOneArray = playerOneObj.map(async (player) => {
         let playerRankQuery = knex(subquery)
@@ -34,6 +34,7 @@ const battleFormatting = async (array) => {
         let playerRank = await Promise.resolve(playerRankQuery);
 
         return {
+          id: player.user_id,
           name: player.name,
           known_as: player.known_as,
           rank: playerRank[0],
@@ -50,6 +51,7 @@ const battleFormatting = async (array) => {
         let playerRank = await Promise.resolve(playerRankQuery);
 
         return {
+          id: player.user_id,
           name: player.name,
           known_as: player.known_as,
           rank: playerRank[0],
@@ -103,12 +105,12 @@ const CompletedBattleFormatting = async (array) => {
         .where({ "combatants.id": battle.player_1_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.name", "users.known_as", "armies.id");
+        .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
       let playerTwoObj = await knex("combatants")
         .where({ "combatants.id": battle.player_2_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.name", "users.known_as", "armies.id");
+        .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
 
       const playerOneArray = playerOneObj.map(async (player) => {
         let playerRankQuery = knex(subquery)
@@ -119,6 +121,7 @@ const CompletedBattleFormatting = async (array) => {
         let playerRank = await Promise.resolve(playerRankQuery);
 
         return {
+          id: player.user_id,
           name: player.name,
           known_as: player.known_as,
           rank: playerRank[0],
@@ -135,6 +138,7 @@ const CompletedBattleFormatting = async (array) => {
         let playerRank = await Promise.resolve(playerRankQuery);
 
         return {
+          id: player.user_id,
           name: player.name,
           known_as: player.known_as,
           rank: playerRank[0],

@@ -6,6 +6,13 @@ const crypto = require("crypto");
 const router = express.Router();
 const nodemailer = require("nodemailer");
 const { adminAuth, headerAuth } = require("../middleware/auth");
+const {
+  getAllUsers,
+  getOneUser,
+  getUserNemesis,
+  getUserAlly,
+} = require("../controllers/users-controllers");
+const { verifyToken } = require("../utils/Auth");
 
 require("dotenv").config();
 
@@ -99,6 +106,7 @@ router.route("/login").post(async (req, res) => {
       process.env.JWT_KEY,
       { expiresIn: "24h" }
     );
+    console.log(token);
     res.send(token);
   } catch (error) {
     console.error(error);
@@ -346,8 +354,11 @@ router.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/rankings").get(headerAuth, async (req, res) => {
-  const userID = req.params.id;
+router.route("/rankings").get(headerAuth, async (req, res) => {
+  const authToken = req.headers.authorization.split(" ")[1];
+  const decodedToken = verifyToken(authToken);
+
+  const userID = decodedToken.id;
 
   try {
     const userObj = await knex("users").where({ id: userID }).first();
@@ -360,35 +371,88 @@ router.route("/:id/rankings").get(headerAuth, async (req, res) => {
     const fortySubquery = knex("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
-      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .select(
+        "army_id",
+        "date",
+        "ranking",
+        "armies.name",
+        "users.known_as",
+        "prev_ranking",
+        "armies.user_id"
+      )
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
-      .where({ "armies.type": "40k", "users.id": userID })
+      .where({ "armies.type": "40k" })
       .as("fortyranks");
 
     const fortyQuery = knex(fortySubquery)
-      .select("name", "known_as", "ranking", "rn")
+      .select("name", "known_as", "ranking", "rn", "prev_ranking", "user_id")
       .where("rn", 1)
       .orderBy("ranking", "desc");
 
     const fantasySubquery = knex("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
-      .select("army_id", "date", "ranking", "armies.name", "users.known_as")
+      .select(
+        "army_id",
+        "date",
+        "ranking",
+        "armies.name",
+        "users.known_as",
+        "prev_ranking",
+        "armies.user_id"
+      )
       .rowNumber("fn", { column: "date", order: "desc" }, "army_id")
-      .where({ "armies.type": "fantasy", "users.id": userID })
+      .where({ "armies.type": "fantasy" })
       .as("fantasyranks");
 
     const fantasyQuery = knex(fantasySubquery)
-      .select("name", "known_as", "ranking", "fn")
+      .select("name", "known_as", "ranking", "fn", "prev_ranking", "user_id")
       .where("fn", 1)
       .orderBy("ranking", "desc");
+
+    const resolvedFantasyArray = await Promise.resolve(fantasyQuery);
+    const resolvedFortyArray = await Promise.resolve(fortyQuery);
+
+    const rankedFantasyArray = resolvedFantasyArray.map((army, index) => {
+      if (army.prev_ranking > index + 1) {
+        return { ...army, current_position: index + 1, status: "increase" };
+      } else if (army.prev_ranking < index + 1) {
+        return { ...army, current_position: index + 1, status: "decrease" };
+      } else {
+        return { ...army, current_position: index + 1, status: "no change" };
+      }
+    });
+    const rankedFortyArray = resolvedFortyArray.map((army, index) => {
+      if (army.prev_ranking > index + 1) {
+        return { ...army, current_position: index + 1, status: "increase" };
+      } else if (army.prev_ranking < index + 1) {
+        return { ...army, current_position: index + 1, status: "decrease" };
+      } else {
+        return { ...army, current_position: index + 1, status: "no change" };
+      }
+    });
+
+    const filteredFantasyArray = rankedFantasyArray.filter(
+      (army) => army.user_id === userID
+    );
+
+    const filteredFortyArray = rankedFortyArray.filter(
+      (army) => army.user_id === userID
+    );
+
     res
       .status(200)
-      .send({ fortyK: await fortyQuery, fantasy: await fantasyQuery });
+      .send({ fortyK: filteredFortyArray, fantasy: filteredFantasyArray });
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve rankings");
   }
 });
 
+router.route("/all").get(getAllUsers);
+
+router.route("/one").get(getOneUser);
+
+router.route("/nemesis").get(getUserNemesis);
+router.route("/ally").get(getUserAlly);
 module.exports = router;

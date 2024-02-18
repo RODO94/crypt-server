@@ -4,8 +4,8 @@
  */
 exports.seed = async function (knex) {
   // Deletes ALL existing entries
-  await knex("matches").del();
-  await knex("matches").insert([
+  await knex("battles").del();
+  await knex("battles").insert([
     {
       id: "1",
       date: new Date("2024-02-10T03:54:00"),
@@ -15,6 +15,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "1",
       player_2_id: "3",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "2",
@@ -25,6 +29,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "5",
       player_2_id: "4",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "3",
@@ -35,6 +43,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "6",
       player_2_id: "10",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "4",
@@ -45,6 +57,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "2",
       player_2_id: "8",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "5",
@@ -55,6 +71,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "5",
       player_2_id: "7",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "6",
@@ -65,6 +85,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "11",
       player_2_id: "12",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "7",
@@ -75,6 +99,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "13",
       player_2_id: "14",
+      status: null,
+      start: "17:00:00",
+      finish: "22:00:00",
+      table: "table 2",
     },
     {
       id: "8",
@@ -85,6 +113,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "16",
       player_2_id: "17",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 3",
     },
     {
       id: "9",
@@ -95,6 +127,10 @@ exports.seed = async function (knex) {
       player_type: "single",
       player_1_id: "18",
       player_2_id: "19",
+      status: null,
+      start: "16:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "10",
@@ -105,6 +141,10 @@ exports.seed = async function (knex) {
       player_type: "multi",
       player_1_id: "1",
       player_2_id: "2",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "11",
@@ -115,6 +155,10 @@ exports.seed = async function (knex) {
       player_type: "multi",
       player_1_id: "3",
       player_2_id: "4",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
     {
       id: "12",
@@ -125,6 +169,10 @@ exports.seed = async function (knex) {
       player_type: "multi",
       player_1_id: "5",
       player_2_id: "6",
+      status: null,
+      start: "19:00:00",
+      finish: "21:00:00",
+      table: "table 1",
     },
   ]);
 };

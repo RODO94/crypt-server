@@ -14,6 +14,7 @@ exports.seed = async function (knex) {
       password: "password",
       known_as: "Kieran",
       role: "admin",
+      user_emblem: "necrons",
     },
     {
       id: "2",
@@ -23,6 +24,7 @@ exports.seed = async function (knex) {
       password: "wordpass",
       known_as: "Kato",
       role: "admin",
+      user_emblem: "worldeaters",
     },
     {
       id: "3",
@@ -32,6 +34,7 @@ exports.seed = async function (knex) {
       password: "password",
       known_as: "Cally",
       role: "user",
+      user_emblem: "spacewolves",
     },
     {
       id: "4",
@@ -41,6 +44,7 @@ exports.seed = async function (knex) {
       password: "wordpass",
       known_as: "Rory",
       role: "admin",
+      user_emblem: "vampirecounts",
     },
     {
       id: "5",
@@ -50,6 +54,7 @@ exports.seed = async function (knex) {
       password: "password",
       known_as: "Commander",
       role: "user",
+      user_emblem: "slaanesh",
     },
     {
       id: "6",
@@ -59,6 +64,7 @@ exports.seed = async function (knex) {
       password: "wordpass",
       known_as: "Ghazghkull",
       role: "user",
+      user_emblem: "tau",
     },
     {
       id: "7",
@@ -68,6 +74,7 @@ exports.seed = async function (knex) {
       password: "password",
       known_as: "Szarekh",
       role: "user",
+      user_emblem: "necrons",
     },
     {
       id: "8",
@@ -77,6 +84,7 @@ exports.seed = async function (knex) {
       password: "wordpass",
       known_as: "Abaddon",
       role: "user",
+      user_emblem: "warriorsofchaosnurgle",
     },
   ]);
 };

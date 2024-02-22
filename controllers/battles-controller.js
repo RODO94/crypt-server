@@ -332,7 +332,7 @@ const fetchUsersUpcomingBattles = async (req, res) => {
 };
 
 const fetchOneBattle = async (req, res) => {
-  const id = req.params.id;
+  const authToken = req.headers.authorization.split(" ")[1];
 
   try {
     const battleObj = await knex("battles").where({ id: id }).first();
@@ -347,9 +347,15 @@ const fetchOneBattle = async (req, res) => {
 };
 
 const fetchUsersCompletedBattles = async (req, res) => {
-  const userID = req.params.id;
+  const authToken = req.headers.authorization.split(" ")[1];
 
   try {
+    const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+    const profile = await knex("users").where({ id: decodedToken.id }).first();
+
+    delete profile.password;
+    const userID = profile.id;
+
     const battleArray = await knex("battles")
       .innerJoin("combatants", (builder) => {
         builder

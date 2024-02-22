@@ -6,6 +6,7 @@ const dayjs = require("dayjs");
 const {
   battleFormatting,
   CompletedBattleFormatting,
+  singleBattlePlayerFormatting,
 } = require("../utils/ArrayMethods");
 
 const multiplayerKnexInsert = async (playerArray, teamID) => {
@@ -332,14 +333,14 @@ const fetchUsersUpcomingBattles = async (req, res) => {
 };
 
 const fetchOneBattle = async (req, res) => {
-  const authToken = req.headers.authorization.split(" ")[1];
-
+  const id = req.params.id;
   try {
     const battleObj = await knex("battles").where({ id: id }).first();
     if (!battleObj) {
       res.status(400).send("We can't find the battle you are looking for");
     }
-    res.status(200).send(battleObj);
+    const newBattleObj = await battleFormatting([battleObj]);
+    res.status(200).send(newBattleObj);
   } catch (error) {
     console.error(error);
     res.status(400).send("We are unable to find your battle right now");

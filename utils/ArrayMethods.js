@@ -1,6 +1,17 @@
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
 
+const joinCombatantsArmiesUsers = async (id) => {
+  const array = await knex("combatants")
+    .join("armies", "combatants.army_id", "=", "armies.id")
+    .join("users", "armies.user_id", "=", "users.id")
+    .join("rank", "combatants.army_id", "")
+    .where({ "combatants.id": id })
+    .orWhere({ "combatants.team_id": id });
+
+  return array;
+};
+
 const battleFormatting = async (array) => {
   try {
     const subquery = knex("rank")
@@ -35,6 +46,7 @@ const battleFormatting = async (array) => {
 
         return {
           id: player.user_id,
+          army_id: player.id,
           name: player.name,
           known_as: player.known_as,
           rank: playerRank[0],
@@ -52,6 +64,7 @@ const battleFormatting = async (array) => {
 
         return {
           id: player.user_id,
+          army_id: player.id,
           name: player.name,
           known_as: player.known_as,
           rank: playerRank[0],
@@ -67,6 +80,12 @@ const battleFormatting = async (array) => {
         start: battle.start,
         finish: battle.finish,
         table: battle.table,
+        scenario: battle.scenario,
+        points_size: battle.points_size,
+        player_1_points: battle.player_1_points,
+        player_2_points: battle.player_2_points,
+        result: battle.result,
+        winner: battle.winner,
         battle_type: battle.battle_type,
         player_type: battle.player_type,
         player_1: resolvedPlayerOne,
@@ -183,4 +202,23 @@ const CompletedBattleFormatting = async (array) => {
   }
 };
 
-module.exports = { battleFormatting, CompletedBattleFormatting };
+const singleBattlePlayerFormatting = async (battle) => {
+  const playerOneID = battle.player_1_id;
+  const playerTwoID = battle.player_2_id;
+
+  const playerOneArray = await joinCombatantsArmiesUsers(playerOneID);
+  const playerTwoArray = await joinCombatantsArmiesUsers(playerTwoID);
+
+  const newBattleObj = {
+    ...battle,
+    playerOne: playerOneArray,
+    playerTwo: playerTwoArray,
+  };
+
+  return newBattleObj;
+};
+module.exports = {
+  battleFormatting,
+  CompletedBattleFormatting,
+  singleBattlePlayerFormatting,
+};

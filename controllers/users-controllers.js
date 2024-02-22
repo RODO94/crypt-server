@@ -11,7 +11,8 @@ const getAllUsers = async (req, res) => {
       "first_name",
       "last_name",
       "email",
-      "role"
+      "role",
+      "id"
     );
 
     res.status(200).send(userArray);

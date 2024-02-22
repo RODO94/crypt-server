@@ -81,4 +81,19 @@ const addNewArmyRanking = async (req, res) => {
   }
 };
 
-module.exports = { updateArmyField, addNewArmyRanking, fetchOneArmy };
+const getAllArmies = async (req, res) => {
+  try {
+    const armyArray = await knex("armies");
+    res.status(200).send(armyArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error);
+  }
+};
+
+module.exports = {
+  updateArmyField,
+  addNewArmyRanking,
+  fetchOneArmy,
+  getAllArmies,
+};

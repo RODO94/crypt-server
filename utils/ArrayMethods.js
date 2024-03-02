@@ -88,6 +88,8 @@ const battleFormatting = async (array) => {
         winner: battle.winner,
         battle_type: battle.battle_type,
         player_type: battle.player_type,
+        combatant_1_id: battle.player_1_id,
+        combatant_2_id: battle.player_2_id,
         player_1: resolvedPlayerOne,
         player_2: resolvedPlayerTwo,
       };

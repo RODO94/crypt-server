@@ -202,7 +202,6 @@ router.route("/:id/edit/pointsize").patch(headerAuth, async (req, res) => {
 router.route("/:id/edit/scenario").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { scenario } = req.body;
-
   const oldScenario = await knex("battles")
     .where({ id: battleID })
     .first()

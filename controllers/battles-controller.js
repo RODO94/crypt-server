@@ -366,7 +366,19 @@ const fetchUsersCompletedBattles = async (req, res) => {
       .join("armies", "combatants.army_id", "=", "armies.id")
       .join("users", "armies.user_id", "=", "users.id")
       .where("users.id", "=", userID)
-      .andWhere({ status: "submitted" });
+      .andWhere({ status: "submitted" })
+      .select(
+        "battles.id",
+        "armies.user_id",
+        "date",
+        "start",
+        "finish",
+        "table",
+        "battle_type",
+        "player_type",
+        "player_1_id",
+        "player_2_id"
+      );
 
     const formattedBattleArray = await CompletedBattleFormatting(battleArray);
 

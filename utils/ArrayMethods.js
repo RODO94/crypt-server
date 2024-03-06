@@ -21,7 +21,6 @@ const battleFormatting = async (array) => {
       .as("ranks");
 
     const promiseBattleArray = array.map(async (battle) => {
-      console.log(battle);
       let newDate = dayjs(battle.date).format("YYYY-MM-DD");
       let playerOneObj = await knex("combatants")
         .where({ "combatants.id": battle.player_1_id })

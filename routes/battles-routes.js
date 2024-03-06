@@ -3,6 +3,7 @@ const knex = require("knex")(require("../knexfile"));
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
+const jwt = require("jsonwebtoken");
 
 require("dotenv").config();
 
@@ -48,6 +49,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
     start,
     finish,
     table,
+    scenario,
   } = req.body;
 
   if (
@@ -63,6 +65,10 @@ router.route("/create").post(headerAuth, async (req, res) => {
     return res
       .status(400)
       .send("Details are missing, please check your submission and try again");
+  }
+
+  if (scenario === undefined) {
+    scenario = null;
   }
 
   if (date === "unspecified") {
@@ -108,6 +114,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
       points_size,
       player_1_id: playerOneID,
       player_2_id: playerTwoID,
+      scenario,
       start: start,
       finish: finish,
       table,
@@ -115,11 +122,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
 
     try {
       await knex("battles").insert(newBattleObj);
-      res
-        .status(200)
-        .send(
-          `Battle created with ID ${newBattleObj.id} between combatants ${playerOneName.name} and ${playerTwoName.name}`
-        );
+      res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
     } catch (error) {
       console.error(error);
       res

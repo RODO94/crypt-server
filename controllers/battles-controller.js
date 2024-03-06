@@ -91,7 +91,7 @@ const fetchRecentArmyRank = async (armyID) => {
 };
 
 const battleResultFantasy = (pointSize, playerOnePoints, playerTwoPoints) => {
-  const pointsDifference = playerOnePoints - playerTwoPoints;
+  let pointsDifference = playerOnePoints - playerTwoPoints;
 
   pointsDifference < 0
     ? (pointsDifference = playerTwoPoints - playerOnePoints)
@@ -208,7 +208,7 @@ const fetchAllBattles = async (req, res) => {
   try {
     const battleArray = await knex("battles");
 
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -234,7 +234,7 @@ const fetchCompletedBattles = async (req, res) => {
   try {
     const battleArray = await knex("battles").where({ status: "submitted" });
 
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -278,7 +278,7 @@ const fetchFiveCompletedBattles = async (req, res) => {
       .orderBy("date", "desc")
       .limit(5);
 
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -380,9 +380,14 @@ const fetchUsersCompletedBattles = async (req, res) => {
         "player_2_id"
       );
 
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await battleFormatting(battleArray);
 
-    res.status(200).send(formattedBattleArray);
+    const sortedArray = formattedBattleArray.sort(
+      (a, b) =>
+        dayjs(b.date, "YYYY-MM-DD").valueOf() -
+        dayjs(a.date, "YYYY-MM-DD").valueOf()
+    );
+    res.status(200).send(sortedArray);
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");
@@ -459,6 +464,8 @@ const fetchUsersCompletedBattlesCount = async (req, res) => {
       .join("users", "armies.user_id", "=", "users.id")
       .where("users.id", "=", userID)
       .andWhere({ status: "submitted" });
+
+    console.log(battleArray);
 
     return res.status(200).send({ count: battleArray.length });
   } catch (error) {

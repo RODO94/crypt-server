@@ -104,4 +104,22 @@ const fetchTopFiveRanking = async (req, res) => {
   }
 };
 
-module.exports = { fetchAllRankings, fetchTopFiveRanking };
+const fetchOneRanking = async (req, res) => {
+  const armyID = req.params.id;
+  try {
+    const rankArray = await knex("rank")
+      .where({ army_id: armyID })
+      .orderBy("date", "desc");
+
+    if (!rankArray) {
+      res.status(400).send("Cannot find any Rank for the Army you sent");
+    }
+
+    res.status(200).send(rankArray[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Error retrieving Army Rank");
+  }
+};
+
+module.exports = { fetchAllRankings, fetchTopFiveRanking, fetchOneRanking };

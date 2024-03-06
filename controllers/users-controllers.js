@@ -43,6 +43,18 @@ const getOneUser = async (req, res) => {
   }
 };
 
+const getOneOtherUser = async (req, res) => {
+  const userID = req.params.id;
+  try {
+    const profile = await knex("users").where({ id: userID }).first();
+
+    res.status(200).send(profile);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve user");
+  }
+};
+
 const getUserNemesis = async (req, res) => {
   const authToken = req.headers.authorization.split(" ")[1];
 
@@ -230,4 +242,10 @@ const getUserAlly = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getOneUser, getUserNemesis, getUserAlly };
+module.exports = {
+  getAllUsers,
+  getOneUser,
+  getUserNemesis,
+  getUserAlly,
+  getOneOtherUser,
+};

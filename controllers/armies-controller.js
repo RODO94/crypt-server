@@ -1,6 +1,7 @@
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
 const crypto = require("crypto");
+const { battleFormatting } = require("../utils/ArrayMethods");
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
@@ -90,10 +91,216 @@ const getAllArmies = async (req, res) => {
     res.status(400).send(error);
   }
 };
+const getAllUserArmies = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const armyArray = await knex("armies").where({ user_id: id });
 
+    let battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id");
+
+    const countArray = armyArray.map((army) => {
+      let count = 0;
+      battleArray.forEach((battle) => {
+        return battle.army_id === army.id ? count++ : count;
+      });
+      return { ...army, count: count };
+    });
+
+    res.status(200).send(countArray);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error);
+  }
+};
+
+const getArmyNemesis = async (req, res) => {
+  try {
+    const armyID = req.params.id;
+
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("armies.id", "=", armyID)
+      .andWhere({ status: "submitted" });
+
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    let opponentArray = [];
+
+    let playerOneArray = formattedBattleArray.map((battle) => {
+      return battle.player_1;
+    });
+
+    let playerTwoArray = formattedBattleArray.map((battle) => {
+      return battle.player_2;
+    });
+
+    playerOneArray.map((player, index) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].army_id === armyID) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === false) {
+        opponentArray.push(player);
+        false;
+      }
+    });
+
+    playerTwoArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].army_id === armyID) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === false) {
+        opponentArray.push(player);
+        false;
+      }
+    });
+
+    const flatOpponentArray = opponentArray.flat(1);
+
+    let armyArray = [];
+
+    flatOpponentArray.forEach((army) => {
+      let armyBool = false;
+      for (let i = 0; i < armyArray.length; i++) {
+        if (
+          armyArray[i].id === army.id &&
+          armyArray[i].name === army.name &&
+          armyArray[i].known_as === army.known_as
+        ) {
+          armyBool = true;
+          armyArray[i].count++;
+        }
+      }
+      if (armyBool !== true) {
+        armyArray.push({ count: 1, ...army });
+      }
+    });
+
+    const sortedOpponentArray = armyArray.sort((a, b) => b.count - a.count);
+
+    res.status(200).send(sortedOpponentArray[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve user");
+  }
+};
+
+const getArmyAlly = async (req, res) => {
+  try {
+    const armyID = req.params.id;
+
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("combatants.army_id", "=", armyID)
+      .andWhere({ status: "submitted" });
+
+    const formattedBattleArray = await battleFormatting(battleArray);
+
+    let opponentArray = [];
+
+    let playerOneArray = formattedBattleArray.map((battle) => {
+      return battle.player_1;
+    });
+
+    let playerTwoArray = formattedBattleArray.map((battle) => {
+      return battle.player_2;
+    });
+
+    playerOneArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].army_id === armyID) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === true) {
+        opponentArray.push(player);
+        playerBool = false;
+      }
+    });
+
+    playerTwoArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].army_id === armyID) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === true) {
+        opponentArray.push(player);
+        playerBool = false;
+      }
+    });
+
+    const flatOpponentArray = opponentArray.flat(1);
+
+    console.log(flatOpponentArray);
+
+    let armyArray = [];
+
+    flatOpponentArray.forEach((army) => {
+      let armyBool = false;
+      for (let i = 0; i < armyArray.length; i++) {
+        if (
+          armyArray[i].id === army.id &&
+          armyArray[i].name === army.name &&
+          armyArray[i].known_as === army.known_as
+        ) {
+          armyBool = true;
+          armyArray[i].count++;
+        }
+      }
+      if (armyBool !== true) {
+        armyArray.push({ count: 1, ...army });
+      }
+    });
+
+    const filteredArmyArray = armyArray.filter(
+      (player) => player.army_id !== armyID
+    );
+
+    const sortedOpponentArray = filteredArmyArray.sort(
+      (a, b) => b.count - a.count
+    );
+
+    res.status(200).send({
+      target: sortedOpponentArray[0],
+      formattedBattleArray: formattedBattleArray,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve user");
+  }
+};
 module.exports = {
   updateArmyField,
   addNewArmyRanking,
   fetchOneArmy,
   getAllArmies,
+  getArmyNemesis,
+  getArmyAlly,
+  getAllUserArmies,
 };

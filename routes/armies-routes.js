@@ -3,21 +3,32 @@ const knex = require("knex")(require("../knexfile"));
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
+const jwt = require("jsonwebtoken");
+
 const {
   updateArmyField,
   addNewArmyRanking,
   fetchOneArmy,
   getAllArmies,
+  getArmyNemesis,
+  getArmyAlly,
+  getAllUserArmies,
 } = require("../controllers/armies-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
 require("dotenv").config();
 
 router.route("/all").get(getAllArmies);
+router.route("/all/:id").get(getAllUserArmies);
 
 router.route("/create").post(headerAuth, async (req, res) => {
-  const { name, type, userID } = req.body;
+  const { name, type } = req.body;
   let { emblemName, emblemID } = req.body;
+
+  const authToken = req.headers.authorization.split(" ")[1];
+
+  const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+  const userID = decodedToken.id;
 
   if (!name) {
     return res.status(400).send("Please provide a valid name for the army");
@@ -93,5 +104,8 @@ router.route("/:id/update").patch(headerAuth, async (req, res) => {
 });
 
 router.route("/:id/ranking").post(adminAuth, addNewArmyRanking);
+
+router.route("/:id/nemesis").get(getArmyNemesis);
+router.route("/:id/ally").get(getArmyAlly);
 
 module.exports = router;

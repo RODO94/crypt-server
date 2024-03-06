@@ -11,6 +11,7 @@ const {
   getOneUser,
   getUserNemesis,
   getUserAlly,
+  getOneOtherUser,
 } = require("../controllers/users-controllers");
 const { verifyToken } = require("../utils/Auth");
 
@@ -385,7 +386,15 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
       .as("fortyranks");
 
     const fortyQuery = knex(fortySubquery)
-      .select("name", "known_as", "ranking", "rn", "prev_ranking", "user_id")
+      .select(
+        "name",
+        "known_as",
+        "ranking",
+        "rn",
+        "prev_ranking",
+        "user_id",
+        "army_id"
+      )
       .where("rn", 1)
       .orderBy("ranking", "desc");
 
@@ -406,7 +415,15 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
       .as("fantasyranks");
 
     const fantasyQuery = knex(fantasySubquery)
-      .select("name", "known_as", "ranking", "fn", "prev_ranking", "user_id")
+      .select(
+        "name",
+        "known_as",
+        "ranking",
+        "fn",
+        "prev_ranking",
+        "user_id",
+        "army_id"
+      )
       .where("fn", 1)
       .orderBy("ranking", "desc");
 
@@ -452,6 +469,8 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
 router.route("/all").get(getAllUsers);
 
 router.route("/one").get(getOneUser);
+
+router.route("/one/:id").get(getOneOtherUser);
 
 router.route("/nemesis").get(getUserNemesis);
 router.route("/ally").get(getUserAlly);

@@ -23,42 +23,10 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.use(
-  "/users",
-  cors({
-    origin: "https://thecryptanstruther.com",
-    methods: "GET, POST, PATCH",
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-  userRoutes
-);
-app.use(
-  "/battles",
-  cors({
-    origin: "https://thecryptanstruther.com",
-    methods: "GET, POST, PATCH",
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-  battlesRoutes
-);
-app.use(
-  "/rankings",
-  cors({
-    origin: "https://thecryptanstruther.com",
-    methods: "GET, POST, PATCH",
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-  rankingsRoutes
-);
-app.use(
-  "/armies",
-  cors({
-    origin: "https://thecryptanstruther.com",
-    methods: "GET, POST, PATCH",
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-  armiesRoutes
-);
+app.use("/users", cors(), userRoutes);
+app.use("/battles", cors(), battlesRoutes);
+app.use("/rankings", cors(), rankingsRoutes);
+app.use("/armies", cors(), armiesRoutes);
 
 app.listen(PORT, () => {
   console.log(`running at ${process.env.BASE_URL}${PORT}`);

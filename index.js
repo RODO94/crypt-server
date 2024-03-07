@@ -5,7 +5,13 @@ const cors = require("cors");
 require("dotenv").config();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://thecryptanstruther.com",
+    methods: "GET, POST, PATCH",
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 const PORT = process.env.PORT || 8080;
 
 const userRoutes = require("./routes/users-routes");

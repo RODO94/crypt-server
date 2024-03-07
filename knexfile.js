@@ -9,4 +9,8 @@ module.exports = {
     password: process.env.DB_PASSWORD,
     charset: "utf8",
   },
+  pool: {
+    min: 2, // Minimum number of connections in the pool
+    max: 10, // Maximum number of connections in the pool
+  },
 };

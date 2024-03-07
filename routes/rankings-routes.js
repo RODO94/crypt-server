@@ -1,5 +1,7 @@
 const express = require("express");
 const knex = require("knex");
+const cors = require("cors");
+
 const {
   fetchAllRankings,
   fetchTopFiveRanking,

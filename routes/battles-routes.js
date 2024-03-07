@@ -3,6 +3,8 @@ const knex = require("knex")(require("../knexfile"));
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
+const cors = require("cors");
+
 const jwt = require("jsonwebtoken");
 
 require("dotenv").config();

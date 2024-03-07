@@ -38,6 +38,11 @@ const {
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
+const corsOptions = {
+  origin: "https://thecryptanstruther.com", // Replace with your Netlify domain
+  optionsSuccessStatus: 200, // Some legacy browsers (e.g., IE11) choke on 204
+};
+
 router.route("/create").post(headerAuth, async (req, res) => {
   let {
     points_size,
@@ -167,9 +172,9 @@ router.route("/create").post(headerAuth, async (req, res) => {
 
 router.route("/all").get(fetchAllBattles);
 router.route("/upcoming").get(fetchUpcomingBattles);
-router.route("/upcoming/5").get(fetchFiveUpcomingBattles);
+router.route("/upcoming/5").get(cors(corsOptions), fetchFiveUpcomingBattles);
 router.route("/completed").get(fetchCompletedBattles);
-router.route("/completed/5").get(fetchFiveCompletedBattles);
+router.route("/completed/5").get(cors(corsOptions), fetchFiveCompletedBattles);
 router.route("/:id").get(fetchOneBattle);
 router.route("/:id/win/percent").get(fetchUsersWinPercent);
 router.route("/:id/win/count").get(fetchUsersWinCount);

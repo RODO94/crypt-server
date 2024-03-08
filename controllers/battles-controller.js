@@ -6,10 +6,11 @@ const dayjs = require("dayjs");
 const {
   battleFormatting,
   CompletedBattleFormatting,
-  singleBattlePlayerFormatting,
   completedBattleFormattingLimited,
   upcomingBattleFormatting,
   upcomingBattleFormattingLimited,
+  completedBattleFormatting,
+  formatOneBattle,
 } = require("../utils/ArrayMethods");
 
 const multiplayerKnexInsert = async (playerArray, teamID) => {
@@ -173,17 +174,7 @@ const rankChangeLoss = (loserRank, winnerRank) => {
 };
 
 const createNewRank = async (newRank, armyID, battleType) => {
-  const subquery = knex("rank")
-    .join("armies", "rank.army_id", "=", "armies.id")
-    .select("army_id", "date", "ranking")
-    .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
-    .where({ "armies.type": battleType })
-    .as("ranks");
-
-  const query = knex(subquery)
-    .select("army_id", "date", "ranking", "rn")
-    .where("rn", 1)
-    .orderBy("ranking", "desc");
+  const query = knex("rank_view").where("rn", 1).orderBy("ranking", "desc");
 
   const currentRankPosition =
     (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
@@ -222,11 +213,7 @@ const fetchAllBattles = async (req, res) => {
 };
 const fetchUpcomingBattles = async (req, res) => {
   try {
-    const date = Date.now();
-    const battleArray = await knex("battles")
-      .where("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
-      .andWhere({ status: null });
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await upcomingBattleFormatting();
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -236,9 +223,7 @@ const fetchUpcomingBattles = async (req, res) => {
 };
 const fetchCompletedBattles = async (req, res) => {
   try {
-    const battleArray = await knex("battles").where({ status: "submitted" });
-
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await completedBattleFormatting();
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -282,7 +267,11 @@ const fetchUsersUpcomingBattles = async (req, res) => {
 
     const formattedBattleArray = await upcomingBattleFormatting();
 
-    res.status(200).send({ user: profile, battleArray: formattedBattleArray });
+    const filteredUserArray = formattedBattleArray.filter(
+      (battle) => battle.user_1_id === userID || battle.user_2_id === userID
+    );
+
+    res.status(200).send({ user: profile, battleArray: filteredUserArray });
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");
@@ -292,12 +281,8 @@ const fetchUsersUpcomingBattles = async (req, res) => {
 const fetchOneBattle = async (req, res) => {
   const id = req.params.id;
   try {
-    const battleObj = await knex("battles").where({ id: id }).first();
-    if (!battleObj) {
-      res.status(400).send("We can't find the battle you are looking for");
-    }
-    const newBattleObj = await battleFormatting([battleObj]);
-    res.status(200).send(newBattleObj);
+    const newBattleObj = await formatOneBattle(id);
+    res.status(200).send(newBattleObj[0]);
   } catch (error) {
     console.error(error);
     res.status(400).send("We are unable to find your battle right now");
@@ -314,32 +299,13 @@ const fetchUsersCompletedBattles = async (req, res) => {
     delete profile.password;
     const userID = profile.id;
 
-    const battleArray = await knex("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("users.id", "=", userID)
-      .andWhere({ status: "submitted" })
-      .select(
-        "battles.id",
-        "armies.user_id",
-        "date",
-        "start",
-        "finish",
-        "table",
-        "battle_type",
-        "player_type",
-        "player_1_id",
-        "player_2_id"
-      );
+    const formattedBattleArray = await completedBattleFormatting();
 
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const filteredUserArray = formattedBattleArray.filter(
+      (battle) => battle.user_1_id === userID || battle.user_2_id === userID
+    );
 
-    const sortedArray = formattedBattleArray.sort(
+    const sortedArray = filteredUserArray.sort(
       (a, b) =>
         dayjs(b.date, "YYYY-MM-DD").valueOf() -
         dayjs(a.date, "YYYY-MM-DD").valueOf()

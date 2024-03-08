@@ -270,8 +270,6 @@ const fetchFiveUpcomingBattles = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
-  } finally {
-    knex.destroy();
   }
 };
 const fetchFiveCompletedBattles = async (req, res) => {
@@ -287,8 +285,6 @@ const fetchFiveCompletedBattles = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
-  } finally {
-    knex.destroy();
   }
 };
 

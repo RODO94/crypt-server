@@ -185,6 +185,7 @@ const createNewRank = async (newRank, armyID, battleType) => {
   const currentRankPosition =
     (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
 
+  // TODO: Change date to date of battle
   const date = Date.now();
 
   const newRankObj = {
@@ -269,6 +270,8 @@ const fetchFiveUpcomingBattles = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
+  } finally {
+    knex.destroy();
   }
 };
 const fetchFiveCompletedBattles = async (req, res) => {
@@ -284,6 +287,8 @@ const fetchFiveCompletedBattles = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
+  } finally {
+    knex.destroy();
   }
 };
 

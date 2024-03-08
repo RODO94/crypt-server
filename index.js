@@ -5,13 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "https://thecryptanstruther.com",
-    methods: "GET, POST, PATCH",
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors());
 const PORT = process.env.PORT || 8080;
 
 const userRoutes = require("./routes/users-routes");
@@ -23,7 +17,7 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.use("/users", cors(), userRoutes);
+app.use("/users", userRoutes);
 app.use("/battles", cors(), battlesRoutes);
 app.use("/rankings", cors(), rankingsRoutes);
 app.use("/armies", cors(), armiesRoutes);

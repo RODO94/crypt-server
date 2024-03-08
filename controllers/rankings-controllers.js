@@ -101,6 +101,8 @@ const fetchTopFiveRanking = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve rankings");
+  } finally {
+    knex.destroy();
   }
 };
 

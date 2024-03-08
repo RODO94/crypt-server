@@ -7,6 +7,9 @@ const {
   battleFormatting,
   CompletedBattleFormatting,
   singleBattlePlayerFormatting,
+  completedBattleFormattingLimited,
+  upcomingBattleFormatting,
+  upcomingBattleFormattingLimited,
 } = require("../utils/ArrayMethods");
 
 const multiplayerKnexInsert = async (playerArray, teamID) => {
@@ -246,25 +249,7 @@ const fetchCompletedBattles = async (req, res) => {
 
 const fetchFiveUpcomingBattles = async (req, res) => {
   try {
-    const date = Date.now();
-    const battleArray = await knex("battles")
-      .where("battles.date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
-      .andWhere({ status: null })
-      .orderBy("date", "asc")
-      .select(
-        "id",
-        "date",
-        "start",
-        "finish",
-        "table",
-        "battle_type",
-        "player_type",
-        "player_1_id",
-        "player_2_id"
-      )
-      .limit(5);
-
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await upcomingBattleFormattingLimited();
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -274,14 +259,9 @@ const fetchFiveUpcomingBattles = async (req, res) => {
 };
 const fetchFiveCompletedBattles = async (req, res) => {
   try {
-    const battleArray = await knex("battles")
-      .where({ status: "submitted" })
-      .orderBy("date", "desc")
-      .limit(5);
+    const responseArray = await completedBattleFormattingLimited();
 
-    const formattedBattleArray = await battleFormatting(battleArray);
-
-    res.status(200).send(formattedBattleArray);
+    res.status(200).send(responseArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
@@ -300,31 +280,7 @@ const fetchUsersUpcomingBattles = async (req, res) => {
     delete profile.password;
     const userID = profile.id;
 
-    const battleArray = await knex("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("users.id", "=", userID)
-      .andWhere("date", ">=", dayjs(date).format("YYYY-MM-DD HH:mm:ss"))
-      .andWhere({ status: null })
-      .select(
-        "battles.id",
-        "armies.user_id",
-        "date",
-        "start",
-        "finish",
-        "table",
-        "battle_type",
-        "player_type",
-        "player_1_id",
-        "player_2_id"
-      );
-
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await upcomingBattleFormatting();
 
     res.status(200).send({ user: profile, battleArray: formattedBattleArray });
   } catch (error) {

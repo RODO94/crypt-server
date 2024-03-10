@@ -84,7 +84,7 @@ const addNewArmyRanking = async (req, res) => {
 
 const getAllArmies = async (req, res) => {
   try {
-    const armyArray = await knex("armies");
+    const armyArray = await knex("armies").select("*");
     res.status(200).send(armyArray);
   } catch (error) {
     console.error(error);
@@ -94,25 +94,36 @@ const getAllArmies = async (req, res) => {
 const getAllUserArmies = async (req, res) => {
   const id = req.params.id;
   try {
-    const armyArray = await knex("armies").where({ user_id: id });
-
     let battleArray = await knex("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
           .orOn("battles.player_2_id", "=", "combatants.id");
       })
-      .join("armies", "combatants.army_id", "=", "armies.id");
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .where("armies.user_id", "=", id)
+      .rowNumber("count", { column: "user_id", order: "desc" }, "army_id")
+      .select("army_id", "armies.name")
+      .as("battleArray");
 
-    const countArray = armyArray.map((army) => {
-      let count = 0;
-      battleArray.forEach((battle) => {
-        return battle.army_id === army.id ? count++ : count;
-      });
-      return { ...army, count: count };
+    const maxCountArray = [];
+
+    battleArray.forEach((army) => {
+      const targetObj = maxCountArray.find(
+        (targetArmy) => targetArmy.army_id === army.army_id
+      );
+      if (!targetObj) {
+        maxCountArray.push(army);
+      } else if (targetObj) {
+        const targetIndex = maxCountArray.findIndex(
+          (targetArmy) => targetArmy.army_id === army.army_id
+        );
+
+        maxCountArray[targetIndex].count = army.count;
+      }
     });
 
-    res.status(200).send(countArray);
+    res.status(200).send(maxCountArray);
   } catch (error) {
     console.error(error);
     res.status(400).send(error);

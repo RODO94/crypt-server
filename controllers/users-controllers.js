@@ -18,7 +18,7 @@ const getAllUsers = async (req, res) => {
     res.status(200).send(userArray);
   } catch (error) {
     console.error(error);
-    res.status(400).send("Unable to acess Users");
+    res.status(400).send("Unable to access Users");
   }
 };
 

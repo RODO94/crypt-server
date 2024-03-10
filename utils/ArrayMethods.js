@@ -297,7 +297,7 @@ const completedBattleFormattingLimited = async () => {
         if (index < 5) {
           return {
             id: battle.id,
-            date: dayjs(battle.date).format("DD-MM-YYYY"),
+            date: dayjs(battle.date).format("YYYY-MM-DD"),
             start: battle.start,
             finish: battle.finish,
             table: battle.table,
@@ -510,7 +510,7 @@ const formatOneBattle = async (id) => {
         if (index < 5) {
           return {
             id: battle.id,
-            date: dayjs(battle.date).format("DD-MM-YYYY"),
+            date: dayjs(battle.date).format("YYYY-MM-DD"),
             start: battle.start,
             finish: battle.finish,
             table: battle.table,
@@ -722,7 +722,7 @@ const completedBattleFormatting = async () => {
     const responseArray = consolidatedArray.map((battle) => {
       return {
         id: battle.id,
-        date: dayjs(battle.date).format("DD-MM-YYYY"),
+        date: dayjs(battle.date).format("YYYY-MM-DD"),
         start: battle.start,
         finish: battle.finish,
         table: battle.table,
@@ -932,7 +932,7 @@ const upcomingBattleFormattingLimited = async () => {
         if (index < 5) {
           return {
             id: battle.id,
-            date: dayjs(battle.date).format("DD-MM-YYYY"),
+            date: dayjs(battle.date).format("YYYY-MM-DD"),
             start: battle.start,
             finish: battle.finish,
             table: battle.table,
@@ -1145,7 +1145,7 @@ const upcomingBattleFormatting = async () => {
     const responseArray = consolidatedArray.map((battle) => {
       return {
         id: battle.id,
-        date: dayjs(battle.date).format("DD-MM-YYYY"),
+        date: dayjs(battle.date).format("YYYY-MM-DD"),
         start: battle.start,
         finish: battle.finish,
         table: battle.table,
@@ -1448,7 +1448,7 @@ const completedArmiesBattleFormatting = async (armyID) => {
     const responseArray = consolidatedArray.map((battle) => {
       return {
         id: battle.id,
-        date: dayjs(battle.date).format("DD-MM-YYYY"),
+        date: dayjs(battle.date).format("YYYY-MM-DD"),
         start: battle.start,
         finish: battle.finish,
         table: battle.table,

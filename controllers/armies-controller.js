@@ -289,7 +289,7 @@ const getArmyAlly = async (req, res) => {
 
 const insertNewArmy = async (armyObj) => {
   try {
-    await knex("armies").insert(newArmyObj);
+    await knex("armies").insert(armyObj);
     return true;
   } catch (error) {
     console.error(error);

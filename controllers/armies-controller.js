@@ -1,7 +1,7 @@
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
 const crypto = require("crypto");
-const { battleFormatting } = require("../utils/ArrayMethods");
+const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
@@ -123,18 +123,7 @@ const getArmyNemesis = async (req, res) => {
   try {
     const armyID = req.params.id;
 
-    const battleArray = await knex("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("armies.id", "=", armyID)
-      .andWhere({ status: "submitted" });
-
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await completedArmiesBattleFormatting(armyID);
 
     let opponentArray = [];
 
@@ -206,18 +195,7 @@ const getArmyAlly = async (req, res) => {
   try {
     const armyID = req.params.id;
 
-    const battleArray = await knex("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("combatants.army_id", "=", armyID)
-      .andWhere({ status: "submitted" });
-
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await completedArmiesBattleFormatting(armyID);
 
     let opponentArray = [];
 

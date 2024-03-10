@@ -388,8 +388,6 @@ const fetchUsersCompletedBattlesCount = async (req, res) => {
       .where("users.id", "=", userID)
       .andWhere({ status: "submitted" });
 
-    console.log(battleArray);
-
     return res.status(200).send({ count: battleArray.length });
   } catch (error) {
     console.error(error);

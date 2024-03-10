@@ -40,11 +40,6 @@ const {
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
-const corsOptions = {
-  origin: "https://thecryptanstruther.com", // Replace with your Netlify domain
-  optionsSuccessStatus: 200, // Some legacy browsers (e.g., IE11) choke on 204
-};
-
 router.route("/create").post(headerAuth, async (req, res) => {
   let {
     points_size,

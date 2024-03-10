@@ -627,14 +627,21 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
 
+  console.log(battleWinner);
+  console.log(finalResult);
+  try {
+    await knex("battles").where({ id: battleID }).update({
+      status: "submitted",
+      winner: battleWinner,
+      result: finalResult,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error);
+  }
+
   if (battleObj.player_type === "multi") {
     try {
-      await knex("battles").where({ id: battleID }).update({
-        status: "submitted",
-        winner: battleWinner,
-        result: finalResult,
-      });
-
       return res
         .status(200)
         .send(await knex("battles").where({ id: battleID }).first());

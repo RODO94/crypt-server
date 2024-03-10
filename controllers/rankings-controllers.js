@@ -111,6 +111,8 @@ const fetchOneRanking = async (req, res) => {
       .where({ army_id: armyID })
       .orderBy("date", "desc");
 
+    console.log(rankArray);
+
     if (!rankArray) {
       res.status(400).send("Cannot find any Rank for the Army you sent");
     }
@@ -118,7 +120,7 @@ const fetchOneRanking = async (req, res) => {
     res.status(200).send(rankArray[0]);
   } catch (error) {
     console.error(error);
-    res.status(400).send("Error retrieving Army Rank");
+    res.status(400).send(error);
   }
 };
 

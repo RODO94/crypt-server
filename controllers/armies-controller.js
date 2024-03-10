@@ -20,6 +20,8 @@ const fetchOneArmy = async (req, res) => {
   try {
     const armyObj = await knex("armies").where({ id: id }).first();
 
+    console.log(armyObj);
+
     if (!armyObj) {
       return res
         .status(400)

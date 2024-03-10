@@ -13,6 +13,7 @@ const {
   getArmyNemesis,
   getArmyAlly,
   getAllUserArmies,
+  insertNewArmy,
 } = require("../controllers/armies-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
@@ -57,7 +58,12 @@ router.route("/create").post(headerAuth, async (req, res) => {
   };
 
   try {
-    await knex("armies").insert(newArmyObj);
+    // await knex("armies").insert(newArmyObj);
+    const response = insertNewArmy(newArmyObj);
+
+    if (!response) {
+      res.status(400).send("We are having trouble inserting the new army");
+    }
 
     await knex("rank").insert({
       id: crypto.randomUUID(),

@@ -286,6 +286,16 @@ const getArmyAlly = async (req, res) => {
     res.status(400).send("Unable to retrieve user");
   }
 };
+
+const insertNewArmy = async (armyObj) => {
+  try {
+    await knex("armies").insert(newArmyObj);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
 module.exports = {
   updateArmyField,
   addNewArmyRanking,
@@ -294,4 +304,5 @@ module.exports = {
   getArmyNemesis,
   getArmyAlly,
   getAllUserArmies,
+  insertNewArmy,
 };

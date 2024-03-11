@@ -9,4 +9,14 @@ const verifyToken = (authToken) => {
   return decodedToken;
 };
 
-module.exports = { verifyToken };
+const getTokenProfile = async (id) => {
+  try {
+    const profile = await knex("users").where({ id: id }).first();
+    return profile;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+module.exports = { verifyToken, getTokenProfile };

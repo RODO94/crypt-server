@@ -12,6 +12,25 @@ const joinCombatantsArmiesUsers = async (id) => {
   return array;
 };
 
+const getUsersCompleteBattleArray = async (id) => {
+  try {
+    const battleArray = await knex("battles")
+      .innerJoin("combatants", (builder) => {
+        builder
+          .on("battles.player_1_id", "=", "combatants.id")
+          .orOn("battles.player_2_id", "=", "combatants.id");
+      })
+      .join("armies", "combatants.army_id", "=", "armies.id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .where("users.id", "=", id)
+      .andWhere({ status: "submitted" });
+    return battleArray;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
 const battleFormattingVerionOne = async (array) => {
   try {
     const subquery = knex("rank")
@@ -1499,4 +1518,5 @@ module.exports = {
   upcomingBattleFormatting,
   formatOneBattle,
   completedArmiesBattleFormatting,
+  getUsersCompleteBattleArray,
 };

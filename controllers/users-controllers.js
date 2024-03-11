@@ -1,8 +1,11 @@
 const knex = require("knex")(require("../knexfile"));
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { CompletedBattleFormatting } = require("../utils/ArrayMethods");
-const { verifyToken } = require("../utils/Auth");
+const {
+  CompletedBattleFormatting,
+  getUsersCompleteBattleArray,
+} = require("../utils/ArrayMethods");
+const { verifyToken, getTokenProfile } = require("../utils/Auth");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -65,20 +68,34 @@ const getUserNemesis = async (req, res) => {
         .status(400)
         .send("Please log in again, your session has expired");
     }
-    const profile = await knex("users").where({ id: decodedToken.id }).first();
+    // const profile = await knex("users").where({ id: decodedToken.id }).first();
+
+    const profile = getTokenProfile(decodedToken.id);
+
+    if (!profile) {
+      return res.status(400).send("Issue retrieving the users profile");
+    }
 
     delete profile.password;
 
-    const battleArray = await knex("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("users.id", "=", profile.id)
-      .andWhere({ status: "submitted" });
+    // const battleArray = await knex("battles")
+    //   .innerJoin("combatants", (builder) => {
+    //     builder
+    //       .on("battles.player_1_id", "=", "combatants.id")
+    //       .orOn("battles.player_2_id", "=", "combatants.id");
+    //   })
+    //   .join("armies", "combatants.army_id", "=", "armies.id")
+    //   .join("users", "armies.user_id", "=", "users.id")
+    //   .where("users.id", "=", profile.id)
+    //   .andWhere({ status: "submitted" });
+
+    const battleArray = getUsersCompleteBattleArray(profile.id);
+
+    if (!battleArray) {
+      return res
+        .status(400)
+        .send("Issue requesting the array of battles from the database");
+    }
 
     const formattedBattleArray = await CompletedBattleFormatting(battleArray);
     console.log(formattedBattleArray);

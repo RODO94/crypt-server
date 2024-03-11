@@ -12,6 +12,7 @@ const {
   completedBattleFormatting,
   formatOneBattle,
 } = require("../utils/ArrayMethods");
+const { getTokenProfile } = require("../utils/Auth");
 
 const createCombatant = async (playerObj) => {
   try {
@@ -306,7 +307,9 @@ const fetchUsersCompletedBattles = async (req, res) => {
 
   try {
     const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
-    const profile = await knex("users").where({ id: decodedToken.id }).first();
+    // const profile = await knex("users").where({ id: decodedToken.id }).first();
+
+    const profile = await getTokenProfile(decodedToken.id);
 
     delete profile.password;
     const userID = profile.id;

@@ -20,8 +20,6 @@ const fetchOneArmy = async (req, res) => {
   try {
     const armyObj = await knex("armies").where({ id: id }).first();
 
-    console.log(armyObj);
-
     if (!armyObj) {
       return res
         .status(400)
@@ -247,8 +245,6 @@ const getArmyAlly = async (req, res) => {
     });
 
     const flatOpponentArray = opponentArray.flat(1);
-
-    console.log(flatOpponentArray);
 
     let armyArray = [];
 

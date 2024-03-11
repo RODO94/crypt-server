@@ -107,7 +107,6 @@ router.route("/login").post(async (req, res) => {
       process.env.JWT_KEY,
       { expiresIn: "24h" }
     );
-    console.log(token);
     res.send(token);
   } catch (error) {
     console.error(error);

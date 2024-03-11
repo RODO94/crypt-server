@@ -78,17 +78,6 @@ const getUserNemesis = async (req, res) => {
 
     delete profile.password;
 
-    // const battleArray = await knex("battles")
-    //   .innerJoin("combatants", (builder) => {
-    //     builder
-    //       .on("battles.player_1_id", "=", "combatants.id")
-    //       .orOn("battles.player_2_id", "=", "combatants.id");
-    //   })
-    //   .join("armies", "combatants.army_id", "=", "armies.id")
-    //   .join("users", "armies.user_id", "=", "users.id")
-    //   .where("users.id", "=", profile.id)
-    //   .andWhere({ status: "submitted" });
-
     const battleArray = await getUsersCompleteBattleArray(profile.id);
 
     if (!battleArray) {
@@ -98,7 +87,6 @@ const getUserNemesis = async (req, res) => {
     }
 
     const formattedBattleArray = await CompletedBattleFormatting(battleArray);
-    console.log(formattedBattleArray);
     let opponentArray = [];
 
     let playerOneArray = await formattedBattleArray.map((battle) => {
@@ -170,20 +158,22 @@ const getUserAlly = async (req, res) => {
 
   try {
     const decodedToken = verifyToken(authToken);
-    const profile = await knex("users").where({ id: decodedToken.id }).first();
+
+    const profile = await getTokenProfile(decodedToken.id);
+
+    if (!profile) {
+      return res.status(400).send("Issue retrieving the users profile");
+    }
 
     delete profile.password;
 
-    const battleArray = await knex("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("users.id", "=", profile.id)
-      .andWhere({ status: "submitted" });
+    const battleArray = await getUsersCompleteBattleArray(profile.id);
+
+    if (!battleArray) {
+      return res
+        .status(400)
+        .send("Issue requesting the array of battles from the database");
+    }
 
     const formattedBattleArray = await CompletedBattleFormatting(battleArray);
 

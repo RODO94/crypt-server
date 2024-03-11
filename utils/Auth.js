@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const knex = require("knex")(require("../knexfile"));
 
 const verifyToken = (authToken) => {
   const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);

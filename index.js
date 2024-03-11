@@ -14,14 +14,6 @@ const battlesRoutes = require("./routes/battles-routes");
 const rankingsRoutes = require("./routes/rankings-routes");
 const armiesRoutes = require("./routes/armies-routes");
 
-app.use(async (req, res, next) => {
-  console.log({
-    used: knex.client.pool.numUsed(),
-    free: knex.client.pool.numFree(),
-  });
-  next();
-});
-
 app.get("/", (req, res) => {
   res.send("Hello World");
 });

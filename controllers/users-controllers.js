@@ -19,7 +19,6 @@ const getAllUsers = async (req, res) => {
     );
 
     console.log(knex.client.pool.numUsed());
-    console.log(knex.client.pool.numFree());
 
     res.status(200).send(userArray);
   } catch (error) {

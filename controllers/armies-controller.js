@@ -85,6 +85,8 @@ const addNewArmyRanking = async (req, res) => {
 const getAllArmies = async (req, res) => {
   try {
     const armyArray = await knex("armies").select("*");
+    console.log(knex.client.pool.numUsed());
+
     res.status(200).send(armyArray);
   } catch (error) {
     console.error(error);
@@ -135,6 +137,8 @@ const getArmyNemesis = async (req, res) => {
     const armyID = req.params.id;
 
     const formattedBattleArray = await completedArmiesBattleFormatting(armyID);
+
+    console.log(knex.client.pool.numUsed());
 
     let opponentArray = [];
 
@@ -194,6 +198,7 @@ const getArmyNemesis = async (req, res) => {
     });
 
     const sortedOpponentArray = armyArray.sort((a, b) => b.count - a.count);
+    console.log(knex.client.pool.numUsed());
 
     res.status(200).send(sortedOpponentArray[0]);
   } catch (error) {
@@ -272,6 +277,8 @@ const getArmyAlly = async (req, res) => {
     const sortedOpponentArray = filteredArmyArray.sort(
       (a, b) => b.count - a.count
     );
+
+    console.log(knex.client.pool.numUsed());
 
     res.status(200).send({
       target: sortedOpponentArray[0],

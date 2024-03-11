@@ -603,8 +603,6 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
 
-  console.log(battleWinner);
-  console.log(finalResult);
   try {
     await knex("battles").where({ id: battleID }).update({
       status: "submitted",

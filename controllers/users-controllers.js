@@ -81,14 +81,14 @@ const getUserNemesis = async (req, res) => {
       .andWhere({ status: "submitted" });
 
     const formattedBattleArray = await CompletedBattleFormatting(battleArray);
-
+    console.log(formattedBattleArray);
     let opponentArray = [];
 
-    let playerOneArray = formattedBattleArray.map((battle) => {
+    let playerOneArray = await formattedBattleArray.map((battle) => {
       return battle.player_1;
     });
 
-    let playerTwoArray = formattedBattleArray.map((battle) => {
+    let playerTwoArray = await formattedBattleArray.map((battle) => {
       return battle.player_2;
     });
 

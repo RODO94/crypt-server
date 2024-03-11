@@ -14,14 +14,22 @@ const battlesRoutes = require("./routes/battles-routes");
 const rankingsRoutes = require("./routes/rankings-routes");
 const armiesRoutes = require("./routes/armies-routes");
 
+app.use(async (req, res, next) => {
+  console.log({
+    used: knex.client.pool.numUsed(),
+    free: knex.client.pool.numFree(),
+  });
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
 app.use("/users", userRoutes);
-app.use("/battles", cors(), battlesRoutes);
-app.use("/rankings", cors(), rankingsRoutes);
-app.use("/armies", cors(), armiesRoutes);
+app.use("/battles", battlesRoutes);
+app.use("/rankings", rankingsRoutes);
+app.use("/armies", armiesRoutes);
 
 app.listen(PORT, () => {
   console.log(`running at ${process.env.BASE_URL}${PORT}`);

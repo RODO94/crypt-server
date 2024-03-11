@@ -70,7 +70,7 @@ const getUserNemesis = async (req, res) => {
     }
     // const profile = await knex("users").where({ id: decodedToken.id }).first();
 
-    const profile = getTokenProfile(decodedToken.id);
+    const profile = await getTokenProfile(decodedToken.id);
 
     if (!profile) {
       return res.status(400).send("Issue retrieving the users profile");
@@ -89,7 +89,7 @@ const getUserNemesis = async (req, res) => {
     //   .where("users.id", "=", profile.id)
     //   .andWhere({ status: "submitted" });
 
-    const battleArray = getUsersCompleteBattleArray(profile.id);
+    const battleArray = await getUsersCompleteBattleArray(profile.id);
 
     if (!battleArray) {
       return res

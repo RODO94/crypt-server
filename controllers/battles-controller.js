@@ -13,20 +13,32 @@ const {
   formatOneBattle,
 } = require("../utils/ArrayMethods");
 
+const createCombatant = async (playerObj) => {
+  try {
+    await knex("combatants").insert(playerObj);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
 const multiplayerKnexInsert = async (playerArray, teamID) => {
-  teamArray = [];
-  for (i = 0; i < playerArray.length; i++) {
-    let playerID = crypto.randomUUID();
-    let playerObj = {
-      id: playerID,
-      army_id: playerArray[i].army_id,
+  const mappedPlayerArray = playerArray.map((player) => {
+    return {
+      id: crypto.randomUUID(),
+      army_id: player.army_id,
       team_id: teamID,
     };
+  });
 
-    teamArray.push(playerObj);
-    await knex("combatants").insert(playerObj);
+  try {
+    await knex("combatants").insert(mappedPlayerArray);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
   }
-  return teamArray;
 };
 
 const singleToMultiCombatantUpdate = async (
@@ -524,4 +536,5 @@ module.exports = {
   fetchUsersCompletedBattlesCount,
   fetchUsersWinPercent,
   fetchOneBattle,
+  createCombatant,
 };

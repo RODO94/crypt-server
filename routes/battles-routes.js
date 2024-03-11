@@ -37,6 +37,7 @@ const {
   fetchUsersWinCount,
   fetchUsersWinPercent,
   fetchOneBattle,
+  createCombatant,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
@@ -83,31 +84,13 @@ router.route("/create").post(headerAuth, async (req, res) => {
     const playerOne = { id: playerOneID, army_id: player_1[0].army_id };
     const playerTwo = { id: playerTwoID, army_id: player_2[0].army_id };
 
-    const playerOneName = await knex("armies")
-      .where({
-        id: player_1[0].army_id,
-      })
-      .first();
+    const responseOne = await createCombatant(playerOne);
+    const responseTwo = await createCombatant(playerTwo);
 
-    const playerTwoName = await knex("armies")
-      .where({
-        id: player_2[0].army_id,
-      })
-      .first();
-
-    if (!playerOneName | !playerTwoName) {
-      return res.status(400).send("Cannot find armies, please check army IDs");
+    if (!responseOne || !responseTwo) {
+      res.status(400).send("Issue adding combatant to database");
     }
-    const newCombatantOne = await knex("combatants").insert(playerOne);
-    const newCombatantTwo = await knex("combatants").insert(playerTwo);
 
-    if (!newCombatantOne | !newCombatantTwo) {
-      return res
-        .status(400)
-        .send(
-          "New combatant could not be created, please check details being submitted"
-        );
-    }
     const newBattleObj = {
       id: crypto.randomUUID(),
       date: dayjs(date).format("YYYY-MM-DD"),
@@ -138,13 +121,6 @@ router.route("/create").post(headerAuth, async (req, res) => {
     await multiplayerKnexInsert(player_2, playerTwoID);
 
     try {
-      const teamOne = await knex("combatants").where({
-        team_id: playerOneID,
-      });
-      const teamTwo = await knex("combatants").where({
-        team_id: playerTwoID,
-      });
-
       const newBattleObj = {
         id: crypto.randomUUID(),
         date: dayjs(date).format("YYYY-MM-DD"),

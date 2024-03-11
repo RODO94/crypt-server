@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const {
   CompletedBattleFormatting,
   getUsersCompleteBattleArray,
+  completedBattleFormatting,
 } = require("../utils/ArrayMethods");
 const { verifyToken, getTokenProfile } = require("../utils/Auth");
 
@@ -70,7 +71,6 @@ const getUserNemesis = async (req, res) => {
         .status(400)
         .send("Please log in again, your session has expired");
     }
-    // const profile = await knex("users").where({ id: decodedToken.id }).first();
 
     const profile = await getTokenProfile(decodedToken.id);
 
@@ -88,7 +88,7 @@ const getUserNemesis = async (req, res) => {
         .send("Issue requesting the array of battles from the database");
     }
 
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await completedBattleFormatting(battleArray);
     let opponentArray = [];
 
     let playerOneArray = await formattedBattleArray.map((battle) => {
@@ -177,7 +177,7 @@ const getUserAlly = async (req, res) => {
         .send("Issue requesting the array of battles from the database");
     }
 
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await completedBattleFormatting(battleArray);
 
     let opponentArray = [];
 

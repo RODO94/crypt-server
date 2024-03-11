@@ -11,6 +11,6 @@ module.exports = {
   },
   pool: {
     min: 2, // Minimum number of connections in the pool
-    max: 10, // Maximum number of connections in the pool
+    max: 6, // Maximum number of connections in the pool
   },
 };

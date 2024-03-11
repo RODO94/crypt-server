@@ -86,7 +86,6 @@ const getAllArmies = async (req, res) => {
   try {
     const armyArray = await knex("armies").select("*");
     console.log(knex.client.pool.numUsed());
-
     res.status(200).send(armyArray);
   } catch (error) {
     console.error(error);

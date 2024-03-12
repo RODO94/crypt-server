@@ -4,10 +4,10 @@
  */
 exports.up = function (knex) {
   return knex.schema.createView("rank_view", function (view) {
-    view.columns(["army_id", "date", "ranking", "prev_ranking", "rn"]);
+    view.columns(["army_id", "date", "ranking", "rn"]);
     view.as(
       knex("rank")
-        .select("army_id", "date", "ranking", "prev_ranking")
+        .select("army_id", "date", "ranking")
         .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
         .as("ranks")
     );

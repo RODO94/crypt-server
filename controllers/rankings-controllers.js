@@ -4,6 +4,7 @@ const fetchAllRankings = async (req, res) => {
   try {
     const rankArray = await knex("rank_view")
       .join("armies", "armies.id", "=", "army_id")
+      .join("users", "armies.user_id", "=", "users.id")
       .where("rn", "=", 1);
 
     const fantasyArray = rankArray.filter(
@@ -25,6 +26,7 @@ const fetchTopFiveRanking = async (req, res) => {
   try {
     const rankArray = await knex("rank_view")
       .join("armies", "armies.id", "=", "army_id")
+      .join("users", "armies.user_id", "=", "users.id")
       .where("rn", "=", 1);
 
     const fantasyArray = rankArray
@@ -49,7 +51,7 @@ const fetchTopFiveRanking = async (req, res) => {
       })
       .filter((army) => army !== " ");
 
-    res.status(200).send({ fortyk: fortykArray, fantasy: fantasyArray });
+    res.status(200).send({ fortyK: fortykArray, fantasy: fantasyArray });
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve rankings");

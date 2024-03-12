@@ -131,7 +131,7 @@ router.route("/forgot-password").post(async (req, res) => {
     }
 
     let mailOptions = {
-      from: "thecrypt@email.com",
+      from: "mailtrap@thecryptanstruther.com",
       to: email,
       subject: "Reset your Crypt Password",
       text: `To reset your password please go to: ${clientURL}/reset/${resetToken}`,

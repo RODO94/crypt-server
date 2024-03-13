@@ -7,6 +7,19 @@ const {
 } = require("../utils/ArrayMethods");
 const { verifyToken, getTokenProfile } = require("../utils/Auth");
 
+const pool = knex.client.pool;
+
+knex.on("start", (builder) => {
+  console.log(("Pool Used on Start", pool.numUsed()));
+  console.log(("Pool Free on Start", pool.numFree()));
+});
+
+knex.on("query-response", (response, builder) => {
+  console.log("Query executed successfully:", builder.sql);
+  console.log("Pool Used", pool.numUsed());
+  console.log("Pool Free on on response", pool.numFree());
+});
+
 const getAllUsers = async (req, res) => {
   try {
     const userArray = await knex("users").select(

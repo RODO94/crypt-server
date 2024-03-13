@@ -3,6 +3,18 @@ const dayjs = require("dayjs");
 const crypto = require("crypto");
 const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
 
+const pool = knex.client.pool;
+
+knex.on("start", (builder) => {
+  console.log(("Pool Used on Start", pool.numUsed()));
+  console.log(("Pool Free on Start", pool.numFree()));
+});
+
+knex.on("query-response", (response, builder) => {
+  console.log("Query executed successfully:", builder.sql);
+  console.log("Pool Used", pool.numUsed());
+  console.log("Pool Free on on response", pool.numFree());
+});
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
     await knex("armies").where({ id: armyID }).update(`${fieldName}`, newValue);

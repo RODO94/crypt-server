@@ -43,14 +43,15 @@ const { headerAuth, adminAuth } = require("../middleware/auth");
 const pool = knex.client.pool;
 
 knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.pool.numUsed());
+  console.log(("Pool Used on Start", pool.numUsed()));
+  console.log(("Pool Free on Start", pool.numFree()));
 });
 
 knex.on("query-response", (response, builder) => {
   console.log("Query executed successfully:", builder.sql);
-  console.log("Pool Used", builder.pool.numUsed());
+  console.log("Pool Used", pool.numUsed());
+  console.log("Pool Free on on response", pool.numFree());
 });
-
 knex.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
 });

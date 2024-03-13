@@ -27,7 +27,7 @@ knex.on("query-response", (response, builder) => {
   console.log("Pool Free on on response", pool.numFree());
 });
 
-const createCombatant = async (playerObj) => {
+const createCombatant = async (playerObj, trx) => {
   try {
     await knex("combatants").insert(playerObj);
     return true;
@@ -37,7 +37,7 @@ const createCombatant = async (playerObj) => {
   }
 };
 
-const multiplayerKnexInsert = async (playerArray, teamID) => {
+const multiplayerKnexInsert = async (playerArray, teamID, trx) => {
   const mappedPlayerArray = playerArray.map((player) => {
     return {
       id: crypto.randomUUID(),
@@ -47,7 +47,7 @@ const multiplayerKnexInsert = async (playerArray, teamID) => {
   });
 
   try {
-    await knex("combatants").insert(mappedPlayerArray);
+    await trx("combatants").insert(mappedPlayerArray);
     return true;
   } catch (error) {
     console.error(error);

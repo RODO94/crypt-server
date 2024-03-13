@@ -59,18 +59,6 @@ knex.on("query-error", (error, builder) => {
 console.log("Connections in use:", pool.numUsed());
 console.log("Connections available:", pool.numFree());
 
-knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.sql);
-});
-
-knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-});
-
-knex.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-});
-
 router.route("/create").post(headerAuth, async (req, res) => {
   let {
     points_size,
@@ -114,13 +102,6 @@ router.route("/create").post(headerAuth, async (req, res) => {
     const playerOne = { id: playerOneID, army_id: player_1[0].army_id };
     const playerTwo = { id: playerTwoID, army_id: player_2[0].army_id };
 
-    const responseOne = await createCombatant(playerOne);
-    const responseTwo = await createCombatant(playerTwo);
-
-    if (!responseOne || !responseTwo) {
-      res.status(400).send("Issue adding combatant to database");
-    }
-
     const newBattleObj = {
       id: crypto.randomUUID(),
       date: dayjs(date).format("YYYY-MM-DD"),
@@ -136,7 +117,11 @@ router.route("/create").post(headerAuth, async (req, res) => {
     };
 
     try {
-      await knex("battles").insert(newBattleObj);
+      await knex.transaction(async (trx) => {
+        await createCombatant(playerOne, trx);
+        await createCombatant(playerTwo, trx);
+        await trx("battles").insert(newBattleObj);
+      });
       res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
     } catch (error) {
       console.error(error);
@@ -147,9 +132,6 @@ router.route("/create").post(headerAuth, async (req, res) => {
         );
     }
   } else if (player_type === "multi") {
-    await multiplayerKnexInsert(player_1, playerOneID);
-    await multiplayerKnexInsert(player_2, playerTwoID);
-
     try {
       const newBattleObj = {
         id: crypto.randomUUID(),
@@ -164,7 +146,12 @@ router.route("/create").post(headerAuth, async (req, res) => {
         table,
       };
 
-      await knex("battles").insert(newBattleObj);
+      await knex.transaction(async (trx) => {
+        await multiplayerKnexInsert(player_1, playerOneID, trx);
+        await multiplayerKnexInsert(player_2, playerTwoID, trx);
+        await trx("battles").insert(newBattleObj);
+      });
+
       res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
     } catch (error) {
       console.error(error);

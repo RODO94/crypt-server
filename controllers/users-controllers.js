@@ -19,8 +19,6 @@ const getAllUsers = async (req, res) => {
       "id"
     );
 
-    console.log(knex.client.pool.numUsed());
-
     res.status(200).send(userArray);
   } catch (error) {
     console.error(error);
@@ -169,15 +167,7 @@ const getUserAlly = async (req, res) => {
 
     delete profile.password;
 
-    const battleArray = await getUsersCompleteBattleArray(profile.id);
-
-    if (!battleArray) {
-      return res
-        .status(400)
-        .send("Issue requesting the array of battles from the database");
-    }
-
-    const formattedBattleArray = await completedBattleFormatting(battleArray);
+    const formattedBattleArray = await completedBattleFormatting();
 
     if (!formattedBattleArray) {
       return res.status(400).send("Issue formatting the battle array");

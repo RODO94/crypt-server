@@ -131,8 +131,6 @@ const getUserNemesis = async (req, res) => {
 
     const flatOpponentArray = opponentArray.flat(1);
 
-    console.log(flatOpponentArray);
-
     let armyArray = [];
 
     flatOpponentArray.forEach((army) => {

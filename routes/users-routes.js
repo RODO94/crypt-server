@@ -361,17 +361,19 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
   const userID = decodedToken.id;
 
   try {
-    const userObj = await knex("users").where({ id: userID }).first();
-    if (!userObj) {
-      return res
-        .status(400)
-        .send("User cannot be found, please check the ID provided");
-    }
-
     const rankArray = await knex("rank_view")
       .join("armies", "armies.id", "=", "rank_view.army_id")
       .join("users", "users.id", "=", "armies.user_id")
+      .where("users.id", "=", userID)
       .orderBy("ranking", "desc");
+
+    if (!rankArray) {
+      return res
+        .status(400)
+        .send(
+          "Unable to retrieve the rankings for specified user, double check the token"
+        );
+    }
 
     const fantasyRankArray = rankArray.filter(
       (rank) => rank.type === "fantasy" || rank.type === "Fantasy"

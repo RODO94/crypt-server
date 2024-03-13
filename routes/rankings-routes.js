@@ -1,6 +1,5 @@
 const express = require("express");
 const knex = require("knex")(require("../knexfile"));
-const cors = require("cors");
 
 const {
   fetchAllRankings,
@@ -10,7 +9,7 @@ const {
 const router = express.Router();
 
 knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.sql);
+  console.log("New query being executed:", builder);
   console.log(pool.numUsed);
 });
 

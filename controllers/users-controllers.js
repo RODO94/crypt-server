@@ -173,8 +173,6 @@ const getUserAlly = async (req, res) => {
       return res.status(400).send("Issue formatting the battle array");
     }
 
-    console.log(formattedBattleArray);
-
     let opponentArray = [];
 
     let playerOneArray = formattedBattleArray.map((battle) => {

@@ -821,6 +821,8 @@ const upcomingBattleFormattingLimited = async () => {
       (battle) => battle.player_type === "multi"
     );
 
+    console.log(singleBattleArray);
+
     const mappedSingle = singleBattleArray.map((battle) => {
       const playerOneRankScore = rankArray.find(
         (rank) => rank.army_id === battle.cb1_armyid

@@ -812,8 +812,6 @@ const upcomingBattleFormattingLimited = async () => {
 
     const rankArray = await knex("rank_view").where("rn", 1);
 
-    console.log(rankArray);
-
     const singleBattleArray = battleArray.filter(
       (battle) => battle.player_type === "single"
     );
@@ -821,13 +819,10 @@ const upcomingBattleFormattingLimited = async () => {
       (battle) => battle.player_type === "multi"
     );
 
-    console.log(singleBattleArray);
-
     const mappedSingle = singleBattleArray.map((battle) => {
       const playerOneRankScore = rankArray.find(
         (rank) => rank.army_id === battle.cb1_armyid
       );
-      console.log(playerOneRankScore);
 
       const playerTwoRankScore = rankArray.find(
         (rank) => rank.army_id === battle.cb2_armyid

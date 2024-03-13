@@ -59,6 +59,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
 
   try {
     const response = await insertNewArmy(newArmyObj);
+    console.log(response);
     if (!response) {
       res.status(400).send("We are having trouble inserting the new army");
     }

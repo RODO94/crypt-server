@@ -58,7 +58,6 @@ router.route("/create").post(headerAuth, async (req, res) => {
   };
 
   try {
-    // await knex("armies").insert(newArmyObj);
     const response = insertNewArmy(newArmyObj);
 
     if (!response) {

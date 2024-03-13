@@ -812,6 +812,8 @@ const upcomingBattleFormattingLimited = async () => {
 
     const rankArray = await knex("rank_view").where("rn", 1);
 
+    console.log(rankArray);
+
     const singleBattleArray = battleArray.filter(
       (battle) => battle.player_type === "single"
     );

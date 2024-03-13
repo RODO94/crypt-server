@@ -19,7 +19,7 @@ const { headerAuth, adminAuth } = require("../middleware/auth");
 
 require("dotenv").config();
 knex.on("start", (builder) => {
-  console.log("New query being executed:", builder);
+  console.log("New query being executed:", builder.pool);
   console.log(pool.numUsed);
 });
 

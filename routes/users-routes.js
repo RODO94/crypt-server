@@ -21,7 +21,7 @@ const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
 const clientURL = `${process.env.CLIENT_URL}`;
 
 knex.on("start", (builder) => {
-  console.log("New query being executed:", builder);
+  console.log("New query being executed:", builder.pool);
   console.log(pool.numUsed);
 });
 

@@ -9,7 +9,7 @@ const {
 const router = express.Router();
 
 knex.on("start", (builder) => {
-  console.log("New query being executed:", builder);
+  console.log("New query being executed:", builder.pool);
   console.log(pool.numUsed);
 });
 

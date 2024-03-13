@@ -368,68 +368,17 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
         .send("User cannot be found, please check the ID provided");
     }
 
-    const fortySubquery = knex("rank")
-      .join("armies", "rank.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .select(
-        "army_id",
-        "date",
-        "ranking",
-        "armies.name",
-        "users.known_as",
-        "prev_ranking",
-        "armies.user_id"
-      )
-      .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
-      .where({ "armies.type": "40k" })
-      .as("fortyranks");
-
-    const fortyQuery = knex(fortySubquery)
-      .select(
-        "name",
-        "known_as",
-        "ranking",
-        "rn",
-        "prev_ranking",
-        "user_id",
-        "army_id"
-      )
-      .where("rn", 1)
+    const rankArray = await knex("rank_view")
+      .join("armies", "armies.id", "=", "rank_view.army_id")
+      .join("users", "users.id", "=", "armies.user_id")
       .orderBy("ranking", "desc");
 
-    const fantasySubquery = knex("rank")
-      .join("armies", "rank.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .select(
-        "army_id",
-        "date",
-        "ranking",
-        "armies.name",
-        "users.known_as",
-        "prev_ranking",
-        "armies.user_id"
-      )
-      .rowNumber("fn", { column: "date", order: "desc" }, "army_id")
-      .where({ "armies.type": "fantasy" })
-      .as("fantasyranks");
+    const fantasyRankArray = rankArray.filter(
+      (rank) => rank.type === "fantasy" || rank.type === "Fantasy"
+    );
+    const fortyKRankArray = rankArray.filter((rank) => rank.type === "40k");
 
-    const fantasyQuery = knex(fantasySubquery)
-      .select(
-        "name",
-        "known_as",
-        "ranking",
-        "fn",
-        "prev_ranking",
-        "user_id",
-        "army_id"
-      )
-      .where("fn", 1)
-      .orderBy("ranking", "desc");
-
-    const resolvedFantasyArray = await Promise.resolve(fantasyQuery);
-    const resolvedFortyArray = await Promise.resolve(fortyQuery);
-
-    const rankedFantasyArray = resolvedFantasyArray.map((army, index) => {
+    const rankedFantasyArray = fantasyRankArray.map((army, index) => {
       if (army.prev_ranking > index + 1) {
         return { ...army, current_position: index + 1, status: "increase" };
       } else if (army.prev_ranking < index + 1) {
@@ -438,7 +387,7 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
         return { ...army, current_position: index + 1, status: "no change" };
       }
     });
-    const rankedFortyArray = resolvedFortyArray.map((army, index) => {
+    const rankedFortyArray = fortyKRankArray.map((army, index) => {
       if (army.prev_ranking > index + 1) {
         return { ...army, current_position: index + 1, status: "increase" };
       } else if (army.prev_ranking < index + 1) {

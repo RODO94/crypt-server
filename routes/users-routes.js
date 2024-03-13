@@ -37,21 +37,6 @@ knex.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
 });
 
-console.log("Connections in use:", pool.numUsed());
-console.log("Connections available:", pool.numFree());
-
-knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.sql);
-});
-
-knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-});
-
-knex.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-});
-
 const transport = nodemailer.createTransport({
   host: "live.smtp.mailtrap.io",
   port: 587,

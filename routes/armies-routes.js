@@ -34,74 +34,57 @@ knex.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
 });
 
-console.log("Connections in use:", pool.numUsed());
-console.log("Connections available:", pool.numFree());
-
-knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.sql);
-});
-
-knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-});
-
-knex.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-});
-
 router.route("/all").get(getAllArmies);
 router.route("/all/:id").get(getAllUserArmies);
 
 router.route("/create").post(headerAuth, async (req, res) => {
-  const { name, type } = req.body;
-  let { emblemName, emblemID } = req.body;
-
-  const authToken = req.headers.authorization.split(" ")[1];
-
-  const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
-  const userID = decodedToken.id;
-
-  if (!name) {
-    return res.status(400).send("Please provide a valid name for the army");
-  }
-
-  if (!type) {
-    return res.status(400).send("Please provide a valid type for the army");
-  }
-
-  if (!userID) {
-    return res.status(400).send("Please provide a valid user ID for the army");
-  }
-
-  emblemName ? emblemName : (emblemName = "undefined");
-  emblemID ? emblemID : (emblemID = "undefined");
-
-  const newArmyID = crypto.randomUUID();
-
-  const newArmyObj = {
-    id: newArmyID,
-    name: name,
-    emblem_id: emblemID,
-    type: type,
-    user_id: userID,
-    emblem: emblemName,
-  };
-
   try {
-    const response = await insertNewArmy(newArmyObj);
-    console.log(response);
-    if (!response) {
+    const { name, type, emblemName, emblemID } = req.body;
+
+    if (!name || !type) {
       return res
         .status(400)
-        .send("We are having trouble inserting the new army");
+        .send("Please provide a valid name and type for the army");
     }
 
-    await knex("rank").insert({
-      id: crypto.randomUUID(),
-      date: dayjs(Date.now()).format("YYYY-MM-DD"),
-      ranking: 30,
-      army_id: newArmyID,
-      prev_ranking: 99,
+    const authToken = req.headers.authorization.split(" ")[1];
+
+    const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+    const userID = decodedToken.id;
+
+    if (!userID) {
+      return res
+        .status(400)
+        .send("Please provide a valid user ID for the army");
+    }
+
+    const finalEmblemName = emblemName || "undefined";
+    const finalEmblemID = emblemID || "undefined";
+
+    const newArmyID = crypto.randomUUID();
+
+    const newArmyObj = {
+      id: newArmyID,
+      name,
+      emblem_id: finalEmblemID,
+      type,
+      user_id: userID,
+      emblem: finalEmblemName,
+    };
+
+    // Use transaction for atomicity
+    await knex.transaction(async (trx) => {
+      // Insert new army
+      await insertNewArmy(newArmyObj, trx);
+
+      // Insert rank entry
+      await trx("rank").insert({
+        id: crypto.randomUUID(),
+        date: dayjs().format("YYYY-MM-DD"),
+        ranking: 30,
+        army_id: newArmyID,
+        prev_ranking: 99,
+      });
     });
 
     return res.status(200).send(newArmyObj);

@@ -2,9 +2,8 @@ const knex = require("knex")(require("../knexfile"));
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
-  CompletedBattleFormatting,
-  getUsersCompleteBattleArray,
   completedBattleFormatting,
+  userCompletedBattleFormatting,
 } = require("../utils/ArrayMethods");
 const { verifyToken, getTokenProfile } = require("../utils/Auth");
 
@@ -78,22 +77,29 @@ const getUserNemesis = async (req, res) => {
 
     delete profile.password;
 
-    const battleArray = await getUsersCompleteBattleArray(profile.id);
+    const formattedBattleArray = await completedBattleFormatting();
 
-    if (!battleArray) {
-      return res
-        .status(400)
-        .send("Issue requesting the array of battles from the database");
-    }
+    const filterArray = formattedBattleArray.filter((battle) => {
+      const playerOneBool = battle.player_1.find(
+        (player) => player.id === decodedToken.id
+      );
+      const playerTwoBool = battle.player_2.find(
+        (player) => player.id === decodedToken.id
+      );
+      if (playerOneBool || playerTwoBool) {
+        return true;
+      } else {
+        return false;
+      }
+    });
 
-    const formattedBattleArray = await completedBattleFormatting(battleArray);
     let opponentArray = [];
 
-    let playerOneArray = await formattedBattleArray.map((battle) => {
+    let playerOneArray = await filterArray.map((battle) => {
       return battle.player_1;
     });
 
-    let playerTwoArray = await formattedBattleArray.map((battle) => {
+    let playerTwoArray = await filterArray.map((battle) => {
       return battle.player_2;
     });
 
@@ -125,6 +131,8 @@ const getUserNemesis = async (req, res) => {
 
     const flatOpponentArray = opponentArray.flat(1);
 
+    console.log(flatOpponentArray);
+
     let armyArray = [];
 
     flatOpponentArray.forEach((army) => {
@@ -145,8 +153,6 @@ const getUserNemesis = async (req, res) => {
     });
 
     const sortedOpponentArray = armyArray.sort((a, b) => b.count - a.count);
-
-    console.log(sortedOpponentArray);
 
     res.status(200).send(sortedOpponentArray[0]);
   } catch (error) {
@@ -175,13 +181,27 @@ const getUserAlly = async (req, res) => {
       return res.status(400).send("Issue formatting the battle array");
     }
 
+    const filterArray = formattedBattleArray.filter((battle) => {
+      const playerOneBool = battle.player_1.find(
+        (player) => player.id === decodedToken.id
+      );
+      const playerTwoBool = battle.player_2.find(
+        (player) => player.id === decodedToken.id
+      );
+      if (playerOneBool || playerTwoBool) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
     let opponentArray = [];
 
-    let playerOneArray = formattedBattleArray.map((battle) => {
+    let playerOneArray = filterArray.map((battle) => {
       return battle.player_1;
     });
 
-    let playerTwoArray = formattedBattleArray.map((battle) => {
+    let playerTwoArray = filterArray.map((battle) => {
       return battle.player_2;
     });
 

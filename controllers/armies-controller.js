@@ -134,15 +134,29 @@ const getArmyNemesis = async (req, res) => {
   try {
     const armyID = req.params.id;
 
-    const formattedBattleArray = await completedArmiesBattleFormatting(armyID);
+    const formattedBattleArray = await completedArmiesBattleFormatting();
+
+    const filterArray = formattedBattleArray.filter((battle) => {
+      const playerOneBool = battle.player_1.find(
+        (player) => player.army_id === armyID
+      );
+      const playerTwoBool = battle.player_2.find(
+        (player) => player.army_id === armyID
+      );
+      if (playerOneBool || playerTwoBool) {
+        return true;
+      } else {
+        return false;
+      }
+    });
 
     let opponentArray = [];
 
-    let playerOneArray = formattedBattleArray.map((battle) => {
+    let playerOneArray = filterArray.map((battle) => {
       return battle.player_1;
     });
 
-    let playerTwoArray = formattedBattleArray.map((battle) => {
+    let playerTwoArray = filterArray.map((battle) => {
       return battle.player_2;
     });
 
@@ -207,14 +221,27 @@ const getArmyAlly = async (req, res) => {
     const armyID = req.params.id;
 
     const formattedBattleArray = await completedArmiesBattleFormatting(armyID);
+    const filterArray = formattedBattleArray.filter((battle) => {
+      const playerOneBool = battle.player_1.find(
+        (player) => player.army_id === armyID
+      );
+      const playerTwoBool = battle.player_2.find(
+        (player) => player.army_id === armyID
+      );
+      if (playerOneBool || playerTwoBool) {
+        return true;
+      } else {
+        return false;
+      }
+    });
 
     let opponentArray = [];
 
-    let playerOneArray = formattedBattleArray.map((battle) => {
+    let playerOneArray = filterArray.map((battle) => {
       return battle.player_1;
     });
 
-    let playerTwoArray = formattedBattleArray.map((battle) => {
+    let playerTwoArray = filterArray.map((battle) => {
       return battle.player_2;
     });
 

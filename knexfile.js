@@ -13,4 +13,5 @@ module.exports = {
     min: 2, // Minimum number of connections in the pool
     max: 6, // Maximum number of connections in the pool
   },
+  acquireConnectionTimeout: 60000,
 };

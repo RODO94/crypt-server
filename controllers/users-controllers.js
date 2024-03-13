@@ -146,6 +146,8 @@ const getUserNemesis = async (req, res) => {
 
     const sortedOpponentArray = armyArray.sort((a, b) => b.count - a.count);
 
+    console.log(sortedOpponentArray);
+
     res.status(200).send(sortedOpponentArray[0]);
   } catch (error) {
     console.error(error);

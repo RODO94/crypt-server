@@ -21,12 +21,12 @@ const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
 const clientURL = `${process.env.CLIENT_URL}`;
 
 knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.pool.numUsed);
+  console.log("New query being executed:", builder.pool.numUsed());
 });
 
 knex.on("query-response", (response, builder) => {
   console.log("Query executed successfully:", builder.sql);
-  console.log("Pool Used", builder.pool.numUsed);
+  console.log("Pool Used", builder.pool.numUsed());
 });
 
 knex.on("query-error", (error, builder) => {

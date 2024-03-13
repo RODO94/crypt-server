@@ -40,6 +40,22 @@ const {
   createCombatant,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
+const pool = knex.client.pool;
+
+console.log("Connections in use:", pool.numUsed());
+console.log("Connections available:", pool.numFree());
+
+knex.on("start", (builder) => {
+  console.log("New query being executed:", builder.sql);
+});
+
+knex.on("query-response", (response, builder) => {
+  console.log("Query executed successfully:", builder.sql);
+});
+
+knex.on("query-error", (error, builder) => {
+  console.error("Error executing query:", builder.sql, error);
+});
 
 router.route("/create").post(headerAuth, async (req, res) => {
   let {

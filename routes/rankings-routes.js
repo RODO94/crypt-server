@@ -1,5 +1,5 @@
 const express = require("express");
-const knex = require("knex");
+const knex = require("knex")(require("../knexfile"));
 const cors = require("cors");
 
 const {
@@ -8,6 +8,24 @@ const {
   fetchOneRanking,
 } = require("../controllers/rankings-controllers");
 const router = express.Router();
+
+knex.on("start", (builder) => {
+  console.log("New query being executed:", builder.sql);
+  console.log(pool.numUsed);
+});
+
+knex.on("query-response", (response, builder) => {
+  console.log("Query executed successfully:", builder.sql);
+});
+
+knex.on("query-error", (error, builder) => {
+  console.error("Error executing query:", builder.sql, error);
+});
+
+const pool = knex.client.pool;
+
+console.log("Connections in use:", pool.numUsed());
+console.log("Connections available:", pool.numFree());
 
 router.route("/all").get(fetchAllRankings);
 router.route("/top5").get(fetchTopFiveRanking);

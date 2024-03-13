@@ -16,39 +16,33 @@ const battlesRoutes = require("./routes/battles-routes");
 const rankingsRoutes = require("./routes/rankings-routes");
 const armiesRoutes = require("./routes/armies-routes");
 
-knex.on("acquireConnection", (connection) => {
-  const connId = connection.__knexUid;
-  activeConnections.set(connId, connection);
-  console.log(
-    `Acquired connection ${connId}. Total active connections: ${activeConnections.size}`
-  );
+const pool = knex.client.pool;
+
+// Monitor connection pool
+
+knex.on("start", (builder) => {
+  console.log("New query being executed:", builder.sql);
 });
 
-knex.on("releaseConnection", (connection) => {
-  const connId = connection.__knexUid;
-  activeConnections.delete(connId);
-  console.log(
-    `Released connection ${connId}. Total active connections: ${activeConnections.size}`
-  );
+knex.on("query-response", (response, builder) => {
+  console.log("Query executed successfully:", builder.sql);
 });
 
-knex.on("acquireConnectionTimeout", () => {
-  console.error("Failed to acquire connection from pool within timeout");
+knex.on("query-error", (error, builder) => {
+  console.error("Error executing query:", builder.sql, error);
 });
 
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
+console.log("Connections available:", pool.numFree());
+console.log("Connections in use:", pool.numUsed());
+
 app.use("/users", userRoutes);
 app.use("/battles", battlesRoutes);
 app.use("/rankings", rankingsRoutes);
 app.use("/armies", armiesRoutes);
-
-setInterval(() => {
-  console.log(`Active connections: ${activeConnections.size}`);
-}, 60000);
-
 app.listen(PORT, () => {
   console.log(`running at ${process.env.BASE_URL}${PORT}`);
 });

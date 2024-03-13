@@ -840,7 +840,9 @@ const upcomingBattleFormattingLimited = async () => {
             army_id: battle.cb1_armyid,
             id: battle.a1_userid,
             known_as: battle.u1_known_as,
-            ranking: playerOneRankScore.ranking,
+            ranking: !playerOneRankScore.ranking
+              ? 30
+              : playerOneRankScore.ranking,
           },
         ],
         playerTwo: [
@@ -849,7 +851,9 @@ const upcomingBattleFormattingLimited = async () => {
             army_id: battle.cb2_armyid,
             id: battle.a2_userid,
             known_as: battle.u2_known_as,
-            ranking: playerTwoRankScore.ranking,
+            ranking: !playerTwoRankScore.ranking
+              ? 30
+              : playerTwoRankScore.ranking,
           },
         ],
       };

@@ -66,7 +66,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
 
     await knex("rank").insert({
       id: crypto.randomUUID(),
-      date: dayjs(Date.now()).format("YY-MM-DD"),
+      date: dayjs(Date.now()).format("YYYY-MM-DD"),
       ranking: 30,
       army_id: newArmyID,
       prev_ranking: 99,

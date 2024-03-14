@@ -295,7 +295,6 @@ const fetchUsersUpcomingBattles = async (req, res) => {
     const userID = profile.id;
 
     const formattedBattleArray = await upcomingBattleFormatting();
-
     const filteredUserArray = formattedBattleArray.filter(
       (battle) => battle.user_1_id === userID || battle.user_2_id === userID
     );

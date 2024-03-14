@@ -529,11 +529,8 @@ router.route("/:id/edit/points_1").patch(headerAuth, async (req, res) => {
       .where({ id: battleID })
       .update({ player_1_points: points });
 
-    const newBattle = await knex("battles").where({ id: battleID }).first();
-
     res.status(200).send({
       message: "Points for player 1 successfully updated",
-      newBattle: newBattle,
     });
   } catch (error) {
     console.error(error);
@@ -561,11 +558,8 @@ router.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
       .where({ id: battleID })
       .update({ player_2_points: points });
 
-    const newBattle = await knex("battles").where({ id: battleID }).first();
-
     res.status(200).send({
       message: "Points for player 2 successfully updated",
-      newBattle: newBattle,
     });
   } catch (error) {
     console.error(error);

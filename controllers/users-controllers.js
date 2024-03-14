@@ -10,14 +10,20 @@ const { verifyToken, getTokenProfile } = require("../utils/Auth");
 const pool = knex.client.pool;
 
 knex.on("start", (builder) => {
-  console.log(("Pool Used on Start", pool.numUsed()));
-  console.log(("Pool Free on Start", pool.numFree()));
+  console.log(("User Controller Pool Used on Start", pool.numUsed()));
+  console.log(("User Controller Pool Free on Start", pool.numFree()));
 });
 
 knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-  console.log("Pool Used", pool.numUsed());
-  console.log("Pool Free on on response", pool.numFree());
+  console.log("User Controller Query executed successfully:", builder.sql);
+  console.log("User Controller Pool Used", pool.numUsed());
+  console.log("User Controller Pool Free on on response", pool.numFree());
+});
+
+knex.on("query-error", (error, builder) => {
+  console.error("Error executing query:", builder.sql, error);
+  console.log("User Controller Error Pool Used", pool.numUsed());
+  console.log("User Controller Error Pool Free on on response", pool.numFree());
 });
 
 const getAllUsers = async (req, res) => {
@@ -187,7 +193,7 @@ const getUserAlly = async (req, res) => {
     delete profile.password;
 
     const formattedBattleArray = await completedBattleFormatting();
-
+    console.log(formattedBattleArray);
     if (!formattedBattleArray) {
       return res.status(400).send("Issue formatting the battle array");
     }

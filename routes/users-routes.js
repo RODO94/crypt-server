@@ -23,18 +23,20 @@ const clientURL = `${process.env.CLIENT_URL}`;
 const pool = knex.client.pool;
 
 knex.on("start", (builder) => {
-  console.log(("Pool Used on Start", pool.numUsed()));
-  console.log(("Pool Free on Start", pool.numFree()));
+  console.log(("User Routes Pool Used on Start", pool.numUsed()));
+  console.log(("User Routes Pool Free on Start", pool.numFree()));
 });
 
 knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-  console.log("Pool Used", pool.numUsed());
-  console.log("Pool Free on on response", pool.numFree());
+  console.log("User Routes Query executed successfully:", builder.sql);
+  console.log("User Routes Pool Used", pool.numUsed());
+  console.log("User Routes Pool Free on on response", pool.numFree());
 });
 
 knex.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
+  console.error("User Routes Error executing query:", builder.sql, error);
+  console.log("User Routes Error Pool Used", pool.numUsed());
+  console.log("User Routes Error Pool Free on on response", pool.numFree());
 });
 
 const transport = nodemailer.createTransport({

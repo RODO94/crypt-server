@@ -17,14 +17,23 @@ const { getTokenProfile } = require("../utils/Auth");
 const pool = knex.client.pool;
 
 knex.on("start", (builder) => {
-  console.log(("Pool Used on Start", pool.numUsed()));
-  console.log(("Pool Free on Start", pool.numFree()));
+  console.log(("Battle Controller Pool Used on Start", pool.numUsed()));
+  console.log(("Battle Controller Pool Free on Start", pool.numFree()));
 });
 
 knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-  console.log("Pool Used", pool.numUsed());
-  console.log("Pool Free on on response", pool.numFree());
+  console.log("Battle Controller Query executed successfully:", builder.sql);
+  console.log("Battle Controller Pool Used", pool.numUsed());
+  console.log("Battle Controller Pool Free on on response", pool.numFree());
+});
+
+knex.on("query-error", (error, builder) => {
+  console.error("Error executing query:", builder.sql, error);
+  console.log("Battle Controller Error Pool Used", pool.numUsed());
+  console.log(
+    "Battle Controller Error Pool Free on on response",
+    pool.numFree()
+  );
 });
 
 const createCombatant = async (playerObj, trx) => {

@@ -1,6 +1,19 @@
 const knex = require("knex")(require("../knexfile"));
 const dayjs = require("dayjs");
 
+const pool = knex.client.pool;
+
+knex.on("start", (builder) => {
+  console.log(("Array Method Pool Used on Start", pool.numUsed()));
+  console.log(("Array Method Pool Free on Start", pool.numFree()));
+});
+
+knex.on("query-response", (response, builder) => {
+  console.log("Array Method Query executed successfully:", builder.sql);
+  console.log("Array Method Pool Used", pool.numUsed());
+  console.log("Array Method Pool Free on response", pool.numFree());
+});
+
 const joinCombatantsArmiesUsers = async (id) => {
   const array = await knex("combatants")
     .join("armies", "combatants.army_id", "=", "armies.id")

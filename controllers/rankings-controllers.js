@@ -3,14 +3,23 @@ const knex = require("knex")(require("../knexfile"));
 const pool = knex.client.pool;
 
 knex.on("start", (builder) => {
-  console.log(("Pool Used on Start", pool.numUsed()));
-  console.log(("Pool Free on Start", pool.numFree()));
+  console.log(("Ranking Controller Pool Used on Start", pool.numUsed()));
+  console.log(("Ranking Controller Pool Free on Start", pool.numFree()));
 });
 
 knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-  console.log("Pool Used", pool.numUsed());
-  console.log("Pool Free on on response", pool.numFree());
+  console.log("Ranking Controller Query executed successfully:", builder.sql);
+  console.log("Ranking Controller Pool Used", pool.numUsed());
+  console.log("Ranking Controller Pool Free on on response", pool.numFree());
+});
+
+knex.on("query-error", (error, builder) => {
+  console.error("Error executing query:", builder.sql, error);
+  console.log("Ranking Controller Error Pool Used", pool.numUsed());
+  console.log(
+    "Ranking Controller Error Pool Free on on response",
+    pool.numFree()
+  );
 });
 
 const fetchAllRankings = async (req, res) => {

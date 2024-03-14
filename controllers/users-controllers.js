@@ -12,6 +12,8 @@ const pool = knex.client.pool;
 knex.on("query", (builder) => {
   console.log("User Controller to be executed", builder.sql);
   console.log("User Controller Pool Used on Start", pool.numUsed());
+  console.log("User Controller Pool Used on Start", pool.numPendingAcquires());
+
   console.log("User Controller Pool Free on Start", pool.numFree());
 });
 

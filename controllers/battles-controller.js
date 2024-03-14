@@ -19,6 +19,11 @@ const pool = knex.client.pool;
 knex.on("query", (builder) => {
   console.log("Battle Controller to be executed", builder.sql);
   console.log("Battle Controller Pool Used on Start", pool.numUsed());
+  console.log(
+    "Battle Controller Pool Used on Start",
+    pool.numPendingAcquires()
+  );
+
   console.log("Battle Controller Pool Free on Start", pool.numFree());
 });
 

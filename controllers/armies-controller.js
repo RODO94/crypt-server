@@ -8,6 +8,8 @@ const pool = knex.client.pool;
 knex.on("query", (builder) => {
   console.log("Army Controller to be executed", builder.sql);
   console.log("Army Controller Pool Used on Start", pool.numUsed());
+  console.log("Army Controller Pool Used on Start", pool.numPendingAcquires());
+
   console.log("Army Controller Pool Free on Start", pool.numFree());
 });
 

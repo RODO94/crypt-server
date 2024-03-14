@@ -44,6 +44,7 @@ const pool = knex.client.pool;
 knex.on("query", (builder) => {
   console.log("Battle Routes to be executed", builder.sql);
   console.log("Battle Routes Pool Used on Start", pool.numUsed());
+  console.log("Battle Routes Pool Used on Start", pool.numPendingAcquires());
   console.log("Battle Routes Pool Free on Start", pool.numFree());
 });
 

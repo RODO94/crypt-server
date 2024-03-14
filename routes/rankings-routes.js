@@ -11,6 +11,8 @@ const pool = knex.client.pool;
 knex.on("query", (builder) => {
   console.log("Ranking Routes to be executed", builder.sql);
   console.log("Ranking Routes Pool Used on Start", pool.numUsed());
+  console.log("Ranking Routes Pool Used on Start", pool.numPendingAcquires());
+
   console.log("Ranking Routes Pool Free on Start", pool.numFree());
 });
 

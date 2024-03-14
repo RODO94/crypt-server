@@ -6,6 +6,8 @@ const pool = knex.client.pool;
 knex.on("query", (builder) => {
   console.log("Array Method to be executed", builder.sql);
   console.log("Array Method Pool Used on Start", pool.numUsed());
+  console.log("Array Methods Pool Used on Start", pool.numPendingAcquires());
+
   console.log("Array Method Pool Free on Start", pool.numFree());
 });
 

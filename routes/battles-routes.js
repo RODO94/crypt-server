@@ -10,7 +10,6 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const {
-  multiplayerKnexInsert,
   singleToMultiCombatantUpdate,
   deleteCombatantTeam,
   addCombatant,
@@ -37,7 +36,7 @@ const {
   fetchUsersWinCount,
   fetchUsersWinPercent,
   fetchOneBattle,
-  createCombatant,
+  multiplayerMapping,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 const pool = knex.client.pool;
@@ -117,8 +116,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
 
     try {
       await knex.transaction(async (trx) => {
-        await createCombatant(playerOne, trx);
-        await createCombatant(playerTwo, trx);
+        await trx("combatants").insert([playerOne, playerTwo]);
         await trx("battles").insert(newBattleObj);
       });
       res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
@@ -145,9 +143,14 @@ router.route("/create").post(headerAuth, async (req, res) => {
         table,
       };
 
+      const playerOneMapped = multiplayerMapping(player_1, playerOneID);
+      const playerTwoMapped = multiplayerMapping(player_2, playerTwoID);
+
       await knex.transaction(async (trx) => {
-        await multiplayerKnexInsert(player_1, playerOneID, trx);
-        await multiplayerKnexInsert(player_2, playerTwoID, trx);
+        await trx("combatants").insert([
+          ...playerOneMapped,
+          ...playerTwoMapped,
+        ]);
         await trx("battles").insert(newBattleObj);
       });
 

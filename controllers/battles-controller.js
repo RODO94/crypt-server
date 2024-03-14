@@ -46,7 +46,7 @@ const createCombatant = async (playerObj, trx) => {
   }
 };
 
-const multiplayerKnexInsert = async (playerArray, teamID, trx) => {
+const multiplayerMapping = (playerArray, teamID) => {
   const mappedPlayerArray = playerArray.map((player) => {
     return {
       id: crypto.randomUUID(),
@@ -55,13 +55,7 @@ const multiplayerKnexInsert = async (playerArray, teamID, trx) => {
     };
   });
 
-  try {
-    await trx("combatants").insert(mappedPlayerArray);
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
+  return mappedPlayerArray;
 };
 
 const singleToMultiCombatantUpdate = async (
@@ -534,7 +528,7 @@ const fetchUsersWinPercent = async (req, res) => {
 };
 
 module.exports = {
-  multiplayerKnexInsert,
+  multiplayerMapping,
   singleToMultiCombatantUpdate,
   deleteCombatantTeam,
   addCombatant,

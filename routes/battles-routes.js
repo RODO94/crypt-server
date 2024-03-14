@@ -89,6 +89,8 @@ router.route("/create").post(headerAuth, async (req, res) => {
       .send("Details are missing, please check your submission and try again");
   }
 
+  console.log("Started the Create Battle Route");
+
   if (scenario === undefined) {
     scenario = null;
   }

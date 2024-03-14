@@ -45,6 +45,7 @@ router.route("/all/:id").get(getAllUserArmies);
 
 router.route("/create").post(headerAuth, async (req, res) => {
   try {
+    console.log("Started the Create Army Route");
     const { name, type, emblemName, emblemID } = req.body;
 
     if (!name || !type) {

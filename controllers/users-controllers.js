@@ -193,7 +193,6 @@ const getUserAlly = async (req, res) => {
     delete profile.password;
 
     const formattedBattleArray = await completedBattleFormatting();
-    console.log(formattedBattleArray);
     if (!formattedBattleArray) {
       return res.status(400).send("Issue formatting the battle array");
     }

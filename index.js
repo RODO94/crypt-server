@@ -18,6 +18,12 @@ const armiesRoutes = require("./routes/armies-routes");
 
 const pool = knex.client.pool;
 
+app.use("/", (req, res, next) => {
+  console.log("Index File Pool in Use", pool.numUsed());
+  console.log("Index File Pool free", pool.numFree());
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });

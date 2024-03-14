@@ -5,22 +5,24 @@ const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
 
 const pool = knex.client.pool;
 
-knex.on("start", (builder) => {
-  console.log(("Armies Controller Pool Used on Start", pool.numUsed()));
-  console.log(("Armies Controller Pool Free on Start", pool.numFree()));
+knex.on("query", (builder) => {
+  console.log("Army Controller to be executed", builder.sql);
+  console.log("Army Controller Pool Used on Start", pool.numUsed());
+  console.log("Army Controller Pool Free on Start", pool.numFree());
 });
 
 knex.on("query-response", (response, builder) => {
-  console.log("Armies Controller Query executed successfully:", builder.sql);
-  console.log("Armies Controller Pool Used", pool.numUsed());
-  console.log("Armies Controller Pool Free on on response", pool.numFree());
+  console.log("Army Controller Query executed successfully:", builder.sql);
+  console.log("Army Controller Pool Used on response", pool.numUsed());
+  console.log("Army Controller Pool Free on response", pool.numFree());
 });
 
 knex.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
-  console.log("Army Controller Error Pool Used", pool.numUsed());
-  console.log("Army Controller Error Pool Free on on response", pool.numFree());
+  console.log("Army Controller Error Pool Used on error", pool.numUsed());
+  console.log("Army Controller Error Pool Free on error", pool.numFree());
 });
+
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
     await knex("armies").where({ id: armyID }).update(`${fieldName}`, newValue);

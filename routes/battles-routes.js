@@ -41,20 +41,22 @@ const {
 const { headerAuth, adminAuth } = require("../middleware/auth");
 const pool = knex.client.pool;
 
-knex.on("start", (builder) => {
-  console.log(("Battle Routes Pool Used on Start", pool.numUsed()));
-  console.log(("Battle Routes Pool Free on Start", pool.numFree()));
+knex.on("query", (builder) => {
+  console.log("Battle Routes to be executed", builder.sql);
+  console.log("Battle Routes Pool Used on Start", pool.numUsed());
+  console.log("Battle Routes Pool Free on Start", pool.numFree());
 });
 
 knex.on("query-response", (response, builder) => {
   console.log("Battle Routes Query executed successfully:", builder.sql);
-  console.log("Battle Routes Pool Used", pool.numUsed());
-  console.log("Battle Routes Pool Free on on response", pool.numFree());
+  console.log("Battle Routes Pool Used on response", pool.numUsed());
+  console.log("Battle Routes Pool Free on response", pool.numFree());
 });
+
 knex.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
-  console.log("Battle Routes Error Pool Used", pool.numUsed());
-  console.log("Battle Routes Error Pool Free on on response", pool.numFree());
+  console.log("Battle Routes Error Pool Used on error", pool.numUsed());
+  console.log("Battle Routes Error Pool Free on error", pool.numFree());
 });
 
 router.route("/create").post(headerAuth, async (req, res) => {

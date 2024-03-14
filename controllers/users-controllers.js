@@ -9,21 +9,22 @@ const { verifyToken, getTokenProfile } = require("../utils/Auth");
 
 const pool = knex.client.pool;
 
-knex.on("start", (builder) => {
-  console.log(("User Controller Pool Used on Start", pool.numUsed()));
-  console.log(("User Controller Pool Free on Start", pool.numFree()));
+knex.on("query", (builder) => {
+  console.log("User Controller to be executed", builder.sql);
+  console.log("User Controller Pool Used on Start", pool.numUsed());
+  console.log("User Controller Pool Free on Start", pool.numFree());
 });
 
 knex.on("query-response", (response, builder) => {
   console.log("User Controller Query executed successfully:", builder.sql);
-  console.log("User Controller Pool Used", pool.numUsed());
-  console.log("User Controller Pool Free on on response", pool.numFree());
+  console.log("User Controller Pool Used on response", pool.numUsed());
+  console.log("User Controller Pool Free on response", pool.numFree());
 });
 
 knex.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
-  console.log("User Controller Error Pool Used", pool.numUsed());
-  console.log("User Controller Error Pool Free on on response", pool.numFree());
+  console.log("User Controller Error Pool Used on error", pool.numUsed());
+  console.log("User Controller Error Pool Free on error", pool.numFree());
 });
 
 const getAllUsers = async (req, res) => {

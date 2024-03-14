@@ -18,26 +18,9 @@ const armiesRoutes = require("./routes/armies-routes");
 
 const pool = knex.client.pool;
 
-// Monitor connection pool
-
-knex.on("start", (builder) => {
-  console.log("New query being executed:", builder.sql);
-});
-
-knex.on("query-response", (response, builder) => {
-  console.log("Query executed successfully:", builder.sql);
-});
-
-knex.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-});
-
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
-
-console.log("Connections available:", pool.numFree());
-console.log("Connections in use:", pool.numUsed());
 
 app.use("/users", userRoutes);
 app.use("/battles", battlesRoutes);

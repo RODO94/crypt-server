@@ -420,6 +420,7 @@ const formatOneBattle = async (id) => {
       const playerOneRankScore = rankArray.find(
         (rank) => rank.army_id === battle.cb1_armyid
       );
+      console.log(playerOneRankScore);
       const playerTwoRankScore = rankArray.find(
         (rank) => rank.army_id === battle.cb2_armyid
       );

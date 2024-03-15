@@ -14,6 +14,7 @@ const {
   getArmyAlly,
   getAllUserArmies,
   insertNewArmy,
+  getArmyInfo,
 } = require("../controllers/armies-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
@@ -134,5 +135,6 @@ router.route("/:id/ranking").post(adminAuth, addNewArmyRanking);
 
 router.route("/:id/nemesis").get(getArmyNemesis);
 router.route("/:id/ally").get(getArmyAlly);
+router.route("/:id/info").get(getArmyInfo);
 
 module.exports = router;

@@ -89,8 +89,6 @@ router.route("/create").post(headerAuth, async (req, res) => {
       .send("Details are missing, please check your submission and try again");
   }
 
-  console.log("Started the Create Battle Route");
-
   if (scenario === undefined) {
     scenario = null;
   }
@@ -122,7 +120,9 @@ router.route("/create").post(headerAuth, async (req, res) => {
     try {
       await knex.transaction(async (trx) => {
         await trx("combatants").insert([playerOne, playerTwo]);
+        console.log("after combatants added pool used is", pool.numUsed());
         await trx("battles").insert(newBattleObj);
+        console.log("after battle added pool used is", pool.numUsed());
       });
       res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
     } catch (error) {

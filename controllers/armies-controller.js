@@ -25,6 +25,28 @@ knex.on("query-error", (error, builder) => {
   console.log("Army Controller Error Pool Free on error", pool.numFree());
 });
 
+const armyCountFn = (array) => {
+  const returnArray = [];
+  array.forEach((army) => {
+    let armyBool = false;
+    for (let i = 0; i < returnArray.length; i++) {
+      if (
+        returnArray[i].id === army.id &&
+        returnArray[i].name === army.name &&
+        returnArray[i].known_as === army.known_as
+      ) {
+        armyBool = true;
+        returnArray[i].count++;
+      }
+    }
+    if (armyBool !== true) {
+      returnArray.push({ count: 1, ...army });
+    }
+  });
+
+  return returnArray;
+};
+
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
     await knex("armies").where({ id: armyID }).update(`${fieldName}`, newValue);
@@ -332,6 +354,131 @@ const getArmyAlly = async (req, res) => {
   }
 };
 
+const getArmyInfo = async (req, res) => {
+  try {
+    const armyID = req.params.id;
+
+    const formattedBattleArray = await completedArmiesBattleFormatting(armyID);
+
+    const filterArray = formattedBattleArray.filter((battle) => {
+      const playerOneBool = battle.player_1.find(
+        (player) => player.army_id === armyID
+      );
+      const playerTwoBool = battle.player_2.find(
+        (player) => player.army_id === armyID
+      );
+      if (playerOneBool || playerTwoBool) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    if (!filterArray[0]) {
+      const armyObj = await knex("rank_view")
+        .join("armies", "armies.id", "=", "rank_view.army_id")
+        .join("users", "armies.user_id", "=", "users.id")
+        .select("armies.*", "users.known_as", "rn", "ranking")
+        .where("armies.id", "=", armyID)
+        .andWhere("rn", "=", 1)
+        .first();
+      return res.status(200).send({
+        nemesis: {},
+        ally: {},
+        user: armyObj,
+        battleCount: 0,
+        winPercent: 0,
+      });
+    }
+
+    let opponentArray = [];
+    let friendArray = [];
+
+    let playerOneArray = filterArray.map((battle) => {
+      return battle.player_1;
+    });
+
+    let playerTwoArray = filterArray.map((battle) => {
+      return battle.player_2;
+    });
+
+    playerOneArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].army_id === armyID) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === true) {
+        friendArray.push(player);
+        playerBool = false;
+      } else {
+        opponentArray.push(player);
+      }
+    });
+
+    playerTwoArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].army_id === armyID) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === true) {
+        friendArray.push(player);
+        playerBool = false;
+      } else {
+        opponentArray.push(player);
+      }
+    });
+
+    const flatOpponentArray = opponentArray.flat(1);
+    const flatAllyArray = friendArray.flat(1);
+
+    let nemesisArray = armyCountFn(flatOpponentArray);
+    let allyArray = armyCountFn(flatAllyArray);
+
+    let sortedNemesisArray = nemesisArray.sort((a, b) => b.count - a.count);
+    let sortedAllyArray = allyArray
+      .filter((player) => player.army_id !== armyID)
+      .sort((a, b) => b.count - a.count);
+
+    let userArray = allyArray.filter((player) => player.army_id === armyID);
+
+    let winArray = filterArray
+      .map((battle) => {
+        // For each battle determine which player, army ID is
+        let playerBool = battle.player_1.find(
+          (player) => player.army_id === armyID
+        );
+        console.log(playerBool ? true : false);
+        const targetPlayer = playerBool ? 1 : 2;
+
+        // then define is winner was player 1 or 2
+
+        const winnerPlayer = battle.combatant_1_id === battle.winner ? 1 : 2;
+        // if targetplayer === winnerplayer then return battle
+
+        if (targetPlayer === winnerPlayer && battle.result !== "draw") {
+          return { targetPlayer, winnerPlayer, battle };
+        }
+      })
+      .filter((battle) => battle === null);
+
+    const winPercent = Math.round((winArray.length / filterArray.length) * 100);
+
+    res.status(200).send({
+      nemesis: sortedNemesisArray[0],
+      ally: sortedAllyArray[0],
+      user: userArray[0],
+      battleCount: filterArray.length,
+      winPercent,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error.response);
+  }
+};
 const insertNewArmy = async (armyObj, trx) => {
   try {
     await trx("armies").insert(armyObj);
@@ -350,4 +497,5 @@ module.exports = {
   getArmyAlly,
   getAllUserArmies,
   insertNewArmy,
+  getArmyInfo,
 };

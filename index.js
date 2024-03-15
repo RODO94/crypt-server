@@ -9,8 +9,6 @@ app.use(express.json());
 app.use(cors());
 const PORT = process.env.PORT || 8080;
 
-const activeConnections = new Map();
-
 const userRoutes = require("./routes/users-routes");
 const battlesRoutes = require("./routes/battles-routes");
 const rankingsRoutes = require("./routes/rankings-routes");

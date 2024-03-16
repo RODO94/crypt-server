@@ -454,12 +454,64 @@ const userCompletedBattleFormatting = async (id) => {
     const [battleArray, rankArray] = await Promise.all([
       knex("battle-view")
         .where({ status: "submitted" })
-        .andWhere((builder) => {
-          builder.where("a1_userid", "=", id).orWhere("a2_userid", "=", id);
-        })
         .orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      knex("rank_view")
+        .where("rn", 1)
+        .join("armies", "rank_view.army_id", "=", "armies.id"),
     ]);
+
+    const fortyKArray = [];
+    const fantasyArray = [];
+
+    rankArray.forEach((rank) => {
+      if (rank.type === "40k") {
+        return fortyKArray.push(rank);
+      } else if (rank.type === "fantasy") {
+        return fantasyArray.push(rank);
+      }
+    });
+
+    const sortedFortyKArray = fortyKArray.sort((a, b) => b.ranking - a.ranking);
+    const sortedFantasyArray = fantasyArray.sort(
+      (a, b) => b.ranking - a.ranking
+    );
+
+    const mappedFortyKArray = sortedFortyKArray.map((army, index) => {
+      return {
+        ...army,
+        current_position: index + 1,
+        status:
+          index + 1 < army.prev_ranking
+            ? "increase"
+            : index + 1 > army.prev_ranking
+            ? "decrease"
+            : "nochange",
+      };
+    });
+    const mappedFantasyArray = sortedFantasyArray.map((army, index) => {
+      return {
+        ...army,
+        current_position: index + 1,
+        status:
+          index + 1 < army.prev_ranking
+            ? "increase"
+            : index + 1 > army.prev_ranking
+            ? "decrease"
+            : "nochange",
+      };
+    });
+
+    const filteredFortyKArray = mappedFortyKArray.filter(
+      (army) => army.user_id === id
+    );
+    const filteredFantasyArray = mappedFantasyArray.filter(
+      (army) => army.user_id === id
+    );
+
+    const newRankArray = {
+      fortyK: filteredFortyKArray,
+      fantasy: filteredFantasyArray,
+    };
 
     const battleMap = new Map();
     battleArray.forEach((battle) => {
@@ -531,7 +583,7 @@ const userCompletedBattleFormatting = async (id) => {
       player_2: battle.playerTwo,
     }));
 
-    return responseArray;
+    return { responseArray, newRankArray };
   } catch (error) {
     console.error(error);
     throw error;

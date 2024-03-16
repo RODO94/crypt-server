@@ -6,6 +6,7 @@ const {
   userCompletedBattleFormatting,
 } = require("../utils/ArrayMethods");
 const { verifyToken, getTokenProfile } = require("../utils/Auth");
+const { armyCountFn } = require("./armies-controller");
 
 const pool = knex.client.pool;
 
@@ -286,10 +287,116 @@ const getUserAlly = async (req, res) => {
   }
 };
 
+const getUserInfo = async (req, res) => {
+  const authToken = req.headers.authorization.split(" ")[1];
+
+  try {
+    const decodedToken = verifyToken(authToken);
+
+    const profile = await getTokenProfile(decodedToken.id);
+
+    if (!profile) {
+      return res.status(400).send("Issue retrieving the users profile");
+    }
+
+    delete profile.password;
+
+    const formattedBattleObj = await userCompletedBattleFormatting(
+      decodedToken.id
+    );
+
+    const formattedBattleArray = formattedBattleObj.responseArray;
+    const rankArray = formattedBattleObj.newRankArray;
+
+    if (!formattedBattleArray) {
+      return res.status(400).send("Issue formatting the battle array");
+    }
+
+    const filterArray = formattedBattleArray.filter((battle) => {
+      const playerOneBool = battle.player_1.find(
+        (player) => player.id === decodedToken.id
+      );
+      const playerTwoBool = battle.player_2.find(
+        (player) => player.id === decodedToken.id
+      );
+      if (playerOneBool || playerTwoBool) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    let opponentArray = [];
+    let friendArray = [];
+
+    let playerOneArray = filterArray.map((battle) => {
+      return battle.player_1;
+    });
+
+    let playerTwoArray = filterArray.map((battle) => {
+      return battle.player_2;
+    });
+
+    playerOneArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].id === profile.id) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === true) {
+        friendArray.push(player);
+        playerBool = false;
+      } else {
+        opponentArray.push(player);
+      }
+    });
+
+    playerTwoArray.map((player) => {
+      let playerBool = false;
+      for (let i = 0; i < player.length; i++) {
+        if (player[i].id === profile.id) {
+          playerBool = true;
+        }
+      }
+      if (playerBool === true) {
+        friendArray.push(player);
+        playerBool = false;
+      } else {
+        opponentArray.push(player);
+      }
+    });
+
+    const flatOpponentArray = opponentArray.flat(1);
+    const flatAllyArray = friendArray.flat(1);
+
+    let nemesisArray = armyCountFn(flatOpponentArray);
+    let allyArray = armyCountFn(flatAllyArray);
+
+    const filteredAllyArray = allyArray
+      .filter((player) => player.id !== profile.id)
+      .sort((a, b) => b.count - a.count);
+
+    const sortedNemesisArray = nemesisArray.sort((a, b) => b.count - a.count);
+
+    res.status(200).send({
+      user: profile,
+      ally: filteredAllyArray[0],
+      nemesis: sortedNemesisArray[0],
+      userResults: filterArray,
+      rankArray,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve user");
+  }
+};
+
 module.exports = {
   getAllUsers,
   getOneUser,
   getUserNemesis,
   getUserAlly,
   getOneOtherUser,
+  getUserInfo,
 };

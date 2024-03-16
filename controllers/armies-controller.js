@@ -498,4 +498,5 @@ module.exports = {
   getAllUserArmies,
   insertNewArmy,
   getArmyInfo,
+  armyCountFn,
 };

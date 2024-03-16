@@ -12,6 +12,7 @@ const {
   getUserNemesis,
   getUserAlly,
   getOneOtherUser,
+  getUserInfo,
 } = require("../controllers/users-controllers");
 const { verifyToken } = require("../utils/Auth");
 
@@ -445,4 +446,6 @@ router.route("/one/:id").get(getOneOtherUser);
 
 router.route("/nemesis").get(getUserNemesis);
 router.route("/ally").get(getUserAlly);
+
+router.route("/user/info").get(getUserInfo);
 module.exports = router;

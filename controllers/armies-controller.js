@@ -482,6 +482,7 @@ const getArmyInfo = async (req, res) => {
 const insertNewArmy = async (armyObj, trx) => {
   try {
     await trx("armies").insert(armyObj);
+    console.log("Connections used during Insert Army", pool.numUsed());
     return true;
   } catch (error) {
     console.error(error);

@@ -84,6 +84,10 @@ router.route("/create").post(headerAuth, async (req, res) => {
     await knex.transaction(async (trx) => {
       // Insert new army
       await insertNewArmy(newArmyObj, trx);
+      console.log(
+        "Connections used after Insert Army but before adding a rank",
+        pool.numUsed()
+      );
 
       // Insert rank entry
       await trx("rank").insert({
@@ -93,6 +97,8 @@ router.route("/create").post(headerAuth, async (req, res) => {
         army_id: newArmyID,
         prev_ranking: 99,
       });
+
+      console.log("Connections used after Insert Rank", pool.numUsed());
     });
 
     return res.status(200).send(newArmyObj);

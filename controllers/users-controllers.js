@@ -1,4 +1,4 @@
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
@@ -8,9 +8,9 @@ const {
 const { verifyToken, getTokenProfile } = require("../utils/Auth");
 const { armyCountFn } = require("./armies-controller");
 
-const pool = knex.client.pool;
+const pool = database.client.pool;
 
-knex.on("query", (builder) => {
+database.on("query", (builder) => {
   console.log("User Controller to be executed", builder.sql);
   console.log("User Controller Pool Used on Start", pool.numUsed());
   console.log("User Controller Pool Used on Start", pool.numPendingAcquires());
@@ -18,13 +18,13 @@ knex.on("query", (builder) => {
   console.log("User Controller Pool Free on Start", pool.numFree());
 });
 
-knex.on("query-response", (response, builder) => {
+database.on("query-response", (response, builder) => {
   console.log("User Controller Query executed successfully:", builder.sql);
   console.log("User Controller Pool Used on response", pool.numUsed());
   console.log("User Controller Pool Free on response", pool.numFree());
 });
 
-knex.on("query-error", (error, builder) => {
+database.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
   console.log("User Controller Error Pool Used on error", pool.numUsed());
   console.log("User Controller Error Pool Free on error", pool.numFree());
@@ -32,7 +32,7 @@ knex.on("query-error", (error, builder) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const userArray = await knex("users").select(
+    const userArray = await database("users").select(
       "known_as",
       "first_name",
       "last_name",
@@ -58,7 +58,9 @@ const getOneUser = async (req, res) => {
       return res.status(400).send(null);
     }
 
-    const profile = await knex("users").where({ id: decodedToken.id }).first();
+    const profile = await database("users")
+      .where({ id: decodedToken.id })
+      .first();
 
     delete profile.password;
 
@@ -72,7 +74,7 @@ const getOneUser = async (req, res) => {
 const getOneOtherUser = async (req, res) => {
   const userID = req.params.id;
   try {
-    const profile = await knex("users").where({ id: userID }).first();
+    const profile = await database("users").where({ id: userID }).first();
 
     res.status(200).send(profile);
   } catch (error) {

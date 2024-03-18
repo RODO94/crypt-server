@@ -1,5 +1,5 @@
 const express = require("express");
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
@@ -19,9 +19,9 @@ const {
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
 require("dotenv").config();
-const pool = knex.client.pool;
+const pool = database.client.pool;
 
-knex.on("query", (builder) => {
+database.on("query", (builder) => {
   console.log("Army Routes to be executed", builder.sql);
   console.log("Army Routes Pool Used on Start", pool.numUsed());
   console.log("Army Routes Pool Used on Start", pool.numPendingAcquires());
@@ -29,13 +29,13 @@ knex.on("query", (builder) => {
   console.log("Army Routes Pool Free on Start", pool.numFree());
 });
 
-knex.on("query-response", (response, builder) => {
+database.on("query-response", (response, builder) => {
   console.log("Army Routes Query executed successfully:", builder.sql);
   console.log("Army Routes Pool Used on response", pool.numUsed());
   console.log("Army Routes Pool Free on response", pool.numFree());
 });
 
-knex.on("query-error", (error, builder) => {
+database.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
   console.log("Army Routes Error Pool Used on error", pool.numUsed());
   console.log("Army Routes Error Pool Free on error", pool.numFree());
@@ -81,7 +81,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
     };
 
     // Use transaction for atomicity
-    await knex.transaction(async (trx) => {
+    await database.transaction(async (trx) => {
       // Insert new army
       await insertNewArmy(newArmyObj, trx);
       console.log(
@@ -116,7 +116,7 @@ router.route("/:id/update").patch(headerAuth, async (req, res) => {
   const { name, type } = req.body;
   let { emblemName, emblemID } = req.body;
 
-  const targetArmy = await knex("armies").where({ id: armyID }).first();
+  const targetArmy = await database("armies").where({ id: armyID }).first();
 
   if (!targetArmy) {
     return res.status(400).send(`Unable to find army with ID ${armyID}`);
@@ -130,7 +130,9 @@ router.route("/:id/update").patch(headerAuth, async (req, res) => {
       : emblemName;
     emblemID ? await updateArmyField(armyID, "emblem_id", emblemID) : emblemID;
 
-    res.status(200).send(await knex("armies").where({ id: armyID }).first());
+    res
+      .status(200)
+      .send(await database("armies").where({ id: armyID }).first());
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to update army");

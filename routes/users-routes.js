@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const crypto = require("crypto");
 const router = express.Router();
 const nodemailer = require("nodemailer");
@@ -21,8 +21,8 @@ require("dotenv").config();
 const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
 const clientURL = `${process.env.CLIENT_URL}`;
 
-const pool = knex.client.pool;
-knex.on("query", (builder) => {
+const pool = database.client.pool;
+database.on("query", (builder) => {
   console.log("User Routes to be executed", builder.sql);
   console.log("User Routes Pool Used on Start", pool.numUsed());
   console.log("User Routes Pool Used on Start", pool.numPendingAcquires());
@@ -30,13 +30,13 @@ knex.on("query", (builder) => {
   console.log("User Routes Pool Free on Start", pool.numFree());
 });
 
-knex.on("query-response", (response, builder) => {
+database.on("query-response", (response, builder) => {
   console.log("User Routes Query executed successfully:", builder.sql);
   console.log("User Routes Pool Used on response", pool.numUsed());
   console.log("User Routes Pool Free on response", pool.numFree());
 });
 
-knex.on("query-error", (error, builder) => {
+database.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
   console.log("User Routes Error Pool Used on error", pool.numUsed());
   console.log("User Routes Error Pool Free on error", pool.numFree());
@@ -52,7 +52,8 @@ const transport = nodemailer.createTransport({
 });
 
 router.route("/register").post(async (req, res) => {
-  const { first_name, last_name, known_as, email, password } = req.body;
+  const { first_name, last_name, known_as, email, password, user_emblem } =
+    req.body;
 
   if (!first_name) {
     return res
@@ -93,10 +94,11 @@ router.route("/register").post(async (req, res) => {
     email,
     password: hashedPassword,
     role: "admin",
+    user_emblem: user_emblem ? user_emblem : "necrons",
   };
 
   try {
-    await knex("users").insert(newUser);
+    await database("users").insert(newUser);
     res.status(201).send("Registration Successful!");
   } catch (error) {
     console.error(error);
@@ -112,7 +114,7 @@ router.route("/login").post(async (req, res) => {
   }
 
   try {
-    const user = await knex("users").where({ email: email }).first();
+    const user = await database("users").where({ email: email }).first();
 
     if (!user) {
       return res.status(400).send("User has not been found");
@@ -141,10 +143,10 @@ router.route("/forgot-password").post(async (req, res) => {
   const resetToken = crypto.randomUUID();
 
   try {
-    const user = await knex("users").where({ email: email }).first();
+    const user = await database("users").where({ email: email }).first();
     const emailHTML = `<h1>Hello from Crypt</h1><p>To reset your password, please use the link below</p><a href="${clientURL}/reset/${resetToken}"> Reset Your Password </a>`;
 
-    await knex("users")
+    await database("users")
       .where({ email: email })
       .update({ "password-reset-token": resetToken });
 
@@ -192,7 +194,7 @@ router.route("/reset/:token").patch(async (req, res) => {
   const hashedPassword = bcrypt.hashSync(password);
 
   try {
-    const userToChange = await knex("users")
+    const userToChange = await database("users")
       .where({ "password-reset-token": token })
       .update({ password: hashedPassword });
 
@@ -213,7 +215,7 @@ router.route("/:id/admin").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
-    const adminRights = await knex("users")
+    const adminRights = await database("users")
       .where({ id: id })
       .update({ role: "admin" });
 
@@ -232,7 +234,7 @@ router.route("/:id/deactivate").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
-    const deactivateRights = await knex("users")
+    const deactivateRights = await database("users")
       .where({ id: id })
       .update({ role: "deactivated" });
 
@@ -251,7 +253,7 @@ router.route("/:id/user").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
-    const userRights = await knex("users")
+    const userRights = await database("users")
       .where({ id: id })
       .update({ role: "user" });
 
@@ -270,7 +272,7 @@ router.route("/:id/edit/first_name").patch(headerAuth, async (req, res) => {
   const { first_name } = req.body;
   const id = req.params.id;
 
-  const targetUser = await knex("users").where({ id: id }).first();
+  const targetUser = await database("users").where({ id: id }).first();
 
   if (!targetUser) {
     res.status(400).send("User has not been found");
@@ -280,7 +282,7 @@ router.route("/:id/edit/first_name").patch(headerAuth, async (req, res) => {
   }
 
   try {
-    const firstNameChange = await knex("users")
+    const firstNameChange = await database("users")
       .where({ id: id })
       .update({ first_name: first_name });
 
@@ -297,7 +299,7 @@ router.route("/:id/edit/last_name").patch(headerAuth, async (req, res) => {
   const { last_name } = req.body;
   const id = req.params.id;
 
-  const targetUser = await knex("users").where({ id: id }).first();
+  const targetUser = await database("users").where({ id: id }).first();
 
   if (!targetUser) {
     res.status(400).send("User has not been found");
@@ -307,7 +309,7 @@ router.route("/:id/edit/last_name").patch(headerAuth, async (req, res) => {
   }
 
   try {
-    const lastNameChange = await knex("users")
+    const lastNameChange = await database("users")
       .where({ id: id })
       .update({ last_name: last_name });
 
@@ -324,7 +326,7 @@ router.route("/:id/edit/email").patch(headerAuth, async (req, res) => {
   const { email } = req.body;
   const id = req.params.id;
 
-  const targetUser = await knex("users").where({ id: id }).first();
+  const targetUser = await database("users").where({ id: id }).first();
 
   if (!targetUser) {
     res.status(400).send("User has not been found");
@@ -334,7 +336,7 @@ router.route("/:id/edit/email").patch(headerAuth, async (req, res) => {
   }
 
   try {
-    const emailChange = await knex("users")
+    const emailChange = await database("users")
       .where({ id: id })
       .update({ email: email });
 
@@ -351,7 +353,7 @@ router.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
   const { known_as } = req.body;
   const id = req.params.id;
 
-  const targetUser = await knex("users").where({ id: id }).first();
+  const targetUser = await database("users").where({ id: id }).first();
 
   if (!targetUser) {
     res.status(400).send("User has not been found");
@@ -363,7 +365,7 @@ router.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
   }
 
   try {
-    const knownAsChange = await knex("users")
+    const knownAsChange = await database("users")
       .where({ id: id })
       .update({ known_as: known_as });
 
@@ -383,7 +385,7 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
   const userID = decodedToken.id;
 
   try {
-    const rankArray = await knex("rank_view")
+    const rankArray = await database("rank_view")
       .join("armies", "armies.id", "=", "rank_view.army_id")
       .join("users", "users.id", "=", "armies.user_id")
       .where("users.id", "=", userID)

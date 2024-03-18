@@ -1,5 +1,5 @@
 const express = require("express");
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const router = express.Router();
 const crypto = require("crypto");
 const dayjs = require("dayjs");
@@ -39,22 +39,22 @@ const {
   multiplayerMapping,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
-const pool = knex.client.pool;
+const pool = database.client.pool;
 
-knex.on("query", (builder) => {
+database.on("query", (builder) => {
   console.log("Battle Routes to be executed", builder.sql);
   console.log("Battle Routes Pool Used on Start", pool.numUsed());
   console.log("Battle Routes Pool Used on Start", pool.numPendingAcquires());
   console.log("Battle Routes Pool Free on Start", pool.numFree());
 });
 
-knex.on("query-response", (response, builder) => {
+database.on("query-response", (response, builder) => {
   console.log("Battle Routes Query executed successfully:", builder.sql);
   console.log("Battle Routes Pool Used on response", pool.numUsed());
   console.log("Battle Routes Pool Free on response", pool.numFree());
 });
 
-knex.on("query-error", (error, builder) => {
+database.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
   console.log("Battle Routes Error Pool Used on error", pool.numUsed());
   console.log("Battle Routes Error Pool Free on error", pool.numFree());
@@ -118,7 +118,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
     };
 
     try {
-      await knex.transaction(async (trx) => {
+      await database.transaction(async (trx) => {
         await trx("combatants").insert([playerOne, playerTwo]);
         console.log("after combatants added pool used is", pool.numUsed());
         await trx("battles").insert(newBattleObj);
@@ -151,7 +151,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
       const playerOneMapped = multiplayerMapping(player_1, playerOneID);
       const playerTwoMapped = multiplayerMapping(player_2, playerTwoID);
 
-      await knex.transaction(async (trx) => {
+      await database.transaction(async (trx) => {
         await trx("combatants").insert([
           ...playerOneMapped,
           ...playerTwoMapped,
@@ -186,12 +186,12 @@ router.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);
 router.route("/:id/edit/pointsize").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { points_size } = req.body;
-  const oldPointsSize = await knex("battles")
+  const oldPointsSize = await database("battles")
     .where({ id: battleID })
     .first()
     .select("points_size");
   try {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ points_size: points_size });
     res
@@ -207,12 +207,12 @@ router.route("/:id/edit/pointsize").patch(headerAuth, async (req, res) => {
 router.route("/:id/edit/scenario").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { scenario } = req.body;
-  const oldScenario = await knex("battles")
+  const oldScenario = await database("battles")
     .where({ id: battleID })
     .first()
     .select("scenario");
   try {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ scenario: scenario });
     res
@@ -229,12 +229,12 @@ router.route("/:id/edit/date").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { date } = req.body;
 
-  const oldDate = await knex("battles")
+  const oldDate = await database("battles")
     .where({ id: battleID })
     .first()
     .select("date");
   try {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ date: dayjs(date).format("YYYY-MM-DD") });
     res
@@ -253,12 +253,12 @@ router.route("/:id/edit/start").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { start } = req.body;
 
-  const oldStart = await knex("battles")
+  const oldStart = await database("battles")
     .where({ id: battleID })
     .first()
     .select("start");
   try {
-    await knex("battles").where({ id: battleID }).update({ start: start });
+    await database("battles").where({ id: battleID }).update({ start: start });
     res
       .status(200)
       .send(`Start time has been updated from ${oldStart.start} to ${start}`);
@@ -271,12 +271,14 @@ router.route("/:id/edit/finish").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { finish } = req.body;
 
-  const oldFinish = await knex("battles")
+  const oldFinish = await database("battles")
     .where({ id: battleID })
     .first()
     .select("finish");
   try {
-    await knex("battles").where({ id: battleID }).update({ finish: finish });
+    await database("battles")
+      .where({ id: battleID })
+      .update({ finish: finish });
     res
       .status(200)
       .send(
@@ -291,12 +293,12 @@ router.route("/:id/edit/table").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { table } = req.body;
 
-  const oldTable = await knex("battles")
+  const oldTable = await database("battles")
     .where({ id: battleID })
     .first()
     .select("table");
   try {
-    await knex("battles").where({ id: battleID }).update({ table: table });
+    await database("battles").where({ id: battleID }).update({ table: table });
     res
       .status(200)
       .send(`Date has been updated from ${oldTable.table} to ${table}`);
@@ -310,12 +312,12 @@ router.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
   const { battle_type, player_type } = req.body;
 
   if (!battle_type && player_type) {
-    const oldPlayerType = await knex("battles")
+    const oldPlayerType = await database("battles")
       .where({ id: battleID })
       .first()
       .select("player_type");
     try {
-      await knex("battles")
+      await database("battles")
         .where({ id: battleID })
         .update({ player_type: player_type });
       res
@@ -328,12 +330,12 @@ router.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
       res.status(400).send("Issue with altering Player Type in the database");
     }
   } else if (battle_type && !player_type) {
-    const oldBattleType = await knex("battles")
+    const oldBattleType = await database("battles")
       .where({ id: battleID })
       .first()
       .select("battle_type");
     try {
-      await knex("battles")
+      await database("battles")
         .where({ id: battleID })
         .update({ battle_type: battle_type });
       res
@@ -346,12 +348,12 @@ router.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
       res.status(400).send("Issue with altering Battle Type in the database");
     }
   } else if (battle_type && player_type) {
-    const oldBattleType = await knex("battles")
+    const oldBattleType = await database("battles")
       .where({ id: battleID })
       .first()
       .select("battle_type", "player_type");
     try {
-      await knex("battles")
+      await database("battles")
         .where({ id: battleID })
         .update({ player_type: player_type, battle_type: battle_type });
       res
@@ -375,7 +377,9 @@ router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { player_1, player_2 } = req.body;
 
-  const battleToChange = await knex("battles").where({ id: battleID }).first();
+  const battleToChange = await database("battles")
+    .where({ id: battleID })
+    .first();
 
   if (!battleToChange) {
     return res
@@ -405,11 +409,11 @@ router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
         teamTwoID
       );
 
-      await knex("battles")
+      await database("battles")
         .where({ id: battleID })
         .update({ player_type: "multi" });
 
-      await knex("battles")
+      await database("battles")
         .where({ id: battleID })
         .update({ player_1_id: teamOneID, player_2_id: teamTwoID });
 
@@ -429,12 +433,12 @@ router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
   ) {
     try {
       if (player_1.id !== prevPlayerOneID) {
-        await knex("combatants")
+        await database("combatants")
           .where({ id: prevPlayerOneID })
           .update({ army_id: player_1[0].army_id });
       }
       if (player_2.id !== prevPlayerTwoID) {
-        await knex("combatants")
+        await database("combatants")
           .where({ id: prevPlayerTwoID })
           .update({ army_id: player_2[0].army_id });
       }
@@ -457,7 +461,7 @@ router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
     const playerTwoID = crypto.randomUUID();
 
     try {
-      await knex("battles")
+      await database("battles")
         .where({ id: battleID })
         .update({ player_type: "single" });
 
@@ -491,8 +495,14 @@ router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
       await deleteCombatantTeam(battleToChange.player_1_id);
       await deleteCombatantTeam(battleToChange.player_2_id);
 
-      const teamOneArray = await multiplayerKnexInsert(player_1, playerOneID);
-      const teamTwoArray = await multiplayerKnexInsert(player_2, playerTwoID);
+      const teamOneArray = await multiplayerdatabaseInsert(
+        player_1,
+        playerOneID
+      );
+      const teamTwoArray = await multiplayerdatabaseInsert(
+        player_2,
+        playerTwoID
+      );
 
       await assignNewCombatant(battleID, playerOneID, 1);
       await assignNewCombatant(battleID, playerTwoID, 2);
@@ -525,7 +535,7 @@ router.route("/:id/edit/points_1").patch(headerAuth, async (req, res) => {
   }
 
   try {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ player_1_points: points });
 
@@ -554,7 +564,7 @@ router.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
   }
 
   try {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ player_2_points: points });
 
@@ -569,9 +579,9 @@ router.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
 
 router.route("/:id/delete").delete(adminAuth, async (req, res) => {
   const battleID = req.params.id;
-  const battleObj = await knex("battles").where({ id: battleID }).first();
+  const battleObj = await database("battles").where({ id: battleID }).first();
   try {
-    await knex("battles").where({ id: battleID }).del();
+    await database("battles").where({ id: battleID }).del();
 
     res
       .status(200)
@@ -585,7 +595,7 @@ router.route("/:id/delete").delete(adminAuth, async (req, res) => {
 router.route("/:id/submit").post(headerAuth, async (req, res) => {
   const battleID = req.params.id;
 
-  const battleObj = await knex("battles").where({ id: battleID }).first();
+  const battleObj = await database("battles").where({ id: battleID }).first();
 
   if (!battleObj) {
     return res.status(400).send("Unable to find the battle");
@@ -622,7 +632,7 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
     : (battleWinner = "draw");
 
   try {
-    await knex("battles").where({ id: battleID }).update({
+    await database("battles").where({ id: battleID }).update({
       status: "submitted",
       winner: battleWinner,
       result: finalResult,
@@ -636,7 +646,7 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
     try {
       return res
         .status(200)
-        .send(await knex("battles").where({ id: battleID }).first());
+        .send(await database("battles").where({ id: battleID }).first());
     } catch (error) {
       console.error(error);
       res.status(400).send("Unable to submit the battle");
@@ -733,7 +743,7 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
 router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
   const battleID = req.params.id;
 
-  const battleObj = await knex("battles").where({ id: battleID }).first();
+  const battleObj = await database("battles").where({ id: battleID }).first();
 
   if (!battleObj) {
     return res.status(400).send("Unable to find the battle");
@@ -771,7 +781,7 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
 
   if (battleObj.player_type === "multi") {
     try {
-      await knex("battles").where({ id: battleID }).update({
+      await database("battles").where({ id: battleID }).update({
         status: "submitted",
         winner: battleWinner,
         result: finalResult,
@@ -779,7 +789,7 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
 
       return res
         .status(200)
-        .send(await knex("battles").where({ id: battleID }).first());
+        .send(await database("battles").where({ id: battleID }).first());
     } catch (error) {
       console.error(error);
       res.status(400).send("Unable to submit the battle");

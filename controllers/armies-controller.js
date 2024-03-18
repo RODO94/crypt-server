@@ -1,11 +1,11 @@
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const dayjs = require("dayjs");
 const crypto = require("crypto");
 const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
 
-const pool = knex.client.pool;
+const pool = database.client.pool;
 
-knex.on("query", (builder) => {
+database.on("query", (builder) => {
   console.log("Army Controller to be executed", builder.sql);
   console.log("Army Controller Pool Used on Start", pool.numUsed());
   console.log("Army Controller Pool Used on Start", pool.numPendingAcquires());
@@ -13,13 +13,13 @@ knex.on("query", (builder) => {
   console.log("Army Controller Pool Free on Start", pool.numFree());
 });
 
-knex.on("query-response", (response, builder) => {
+database.on("query-response", (response, builder) => {
   console.log("Army Controller Query executed successfully:", builder.sql);
   console.log("Army Controller Pool Used on response", pool.numUsed());
   console.log("Army Controller Pool Free on response", pool.numFree());
 });
 
-knex.on("query-error", (error, builder) => {
+database.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
   console.log("Army Controller Error Pool Used on error", pool.numUsed());
   console.log("Army Controller Error Pool Free on error", pool.numFree());
@@ -49,9 +49,11 @@ const armyCountFn = (array) => {
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
-    await knex("armies").where({ id: armyID }).update(`${fieldName}`, newValue);
+    await database("armies")
+      .where({ id: armyID })
+      .update(`${fieldName}`, newValue);
 
-    return await knex("armies").where({ id: armyID }).first();
+    return await database("armies").where({ id: armyID }).first();
   } catch (error) {
     console.error(error);
     return "Unable to update";
@@ -62,7 +64,7 @@ const fetchOneArmy = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const armyObj = await knex("armies").where({ id: id }).first();
+    const armyObj = await database("armies").where({ id: id }).first();
 
     if (!armyObj) {
       return res
@@ -85,21 +87,21 @@ const addNewArmyRanking = async (req, res) => {
     return res.status(400).send("Please add the new rank to the request body");
   }
 
-  const armyObj = await knex("armies").where({ id: armyID }).first();
+  const armyObj = await database("armies").where({ id: armyID }).first();
 
   if (!armyObj) {
     return res.status(400).send(`Can't find the army with ID: ${armyID}`);
   }
 
   try {
-    const subquery = knex("rank")
+    const subquery = database("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .select("army_id", "date", "ranking")
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
       .where({ "armies.type": armyObj.type })
       .as("ranks");
 
-    const query = knex(subquery)
+    const query = database(subquery)
       .select("army_id", "date", "ranking", "rn")
       .where("rn", 1)
       .orderBy("ranking", "desc");
@@ -117,7 +119,7 @@ const addNewArmyRanking = async (req, res) => {
       prev_ranking: currentRankPosition,
     };
 
-    await knex("rank").insert(newRankObj);
+    await database("rank").insert(newRankObj);
 
     res.status(200).send(newRankObj);
   } catch (error) {
@@ -128,7 +130,7 @@ const addNewArmyRanking = async (req, res) => {
 
 const getAllArmies = async (req, res) => {
   try {
-    const armyArray = await knex("armies").select("*");
+    const armyArray = await database("armies").select("*");
     res.status(200).send(armyArray);
   } catch (error) {
     console.error(error);
@@ -138,7 +140,7 @@ const getAllArmies = async (req, res) => {
 const getAllUserArmies = async (req, res) => {
   const id = req.params.id;
   try {
-    let battleArray = await knex("battles")
+    let battleArray = await database("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -375,7 +377,7 @@ const getArmyInfo = async (req, res) => {
     });
 
     if (!filterArray[0]) {
-      const armyObj = await knex("rank_view")
+      const armyObj = await database("rank_view")
         .join("armies", "armies.id", "=", "rank_view.army_id")
         .join("users", "armies.user_id", "=", "users.id")
         .select("armies.*", "users.known_as", "rn", "ranking")

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 
 const verifyToken = (authToken) => {
   const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
@@ -12,7 +12,7 @@ const verifyToken = (authToken) => {
 
 const getTokenProfile = async (id) => {
   try {
-    const profile = await knex("users").where({ id: id }).first();
+    const profile = await database("users").where({ id: id }).first();
     return profile;
   } catch (error) {
     console.error(error);

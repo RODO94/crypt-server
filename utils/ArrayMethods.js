@@ -1,30 +1,16 @@
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const dayjs = require("dayjs");
 
-const pool = knex.client.pool;
+const pool = database.client.pool;
 
-knex.on("query", (builder) => {
-  console.log("Array Method to be executed", builder.sql);
-  console.log("Array Method Pool Used on Start", pool.numUsed());
-  console.log("Array Methods Pool Used on Start", pool.numPendingAcquires());
-
-  console.log("Array Method Pool Free on Start", pool.numFree());
-});
-
-knex.on("query-response", (response, builder) => {
-  console.log("Array Method Query executed successfully:", builder.sql);
-  console.log("Array Method Pool Used on response", pool.numUsed());
-  console.log("Array Method Pool Free on response", pool.numFree());
-});
-
-knex.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-  console.log("Array Method Error Pool Used on error", pool.numUsed());
-  console.log("Array Method Error Pool Free on error", pool.numFree());
+database.on("query", (builder) => {
+  console.log("Array Methods to be executed", builder.sql);
+  console.log("Array Methods Pool Used on Start", pool.numUsed());
+  console.log("Array Methods Pool Free on Start", pool.numFree());
 });
 
 const joinCombatantsArmiesUsers = async (id) => {
-  const array = await knex("combatants")
+  const array = await database("combatants")
     .join("armies", "combatants.army_id", "=", "armies.id")
     .join("users", "armies.user_id", "=", "users.id")
     .join("rank", "combatants.army_id", "")
@@ -36,7 +22,7 @@ const joinCombatantsArmiesUsers = async (id) => {
 
 const getUsersCompleteBattleArray = async (id) => {
   try {
-    const battleArray = await knex("battles")
+    const battleArray = await database("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -55,7 +41,7 @@ const getUsersCompleteBattleArray = async (id) => {
 
 const battleFormattingVerionOne = async (array) => {
   try {
-    const subquery = knex("rank")
+    const subquery = database("rank")
       .join("armies", "rank.army_id", "=", "armies.id")
       .select("army_id", "date", "ranking")
       .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
@@ -63,14 +49,14 @@ const battleFormattingVerionOne = async (array) => {
 
     const promiseBattleArray = array.map(async (battle) => {
       let newDate = dayjs(battle.date).format("YYYY-MM-DD");
-      let playerOneObj = await knex("combatants")
+      let playerOneObj = await database("combatants")
         .where({ "combatants.id": battle.player_1_id })
         .orWhere({ "combatants.team_id": battle.player_1_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
         .join("users", "armies.user_id", "=", "users.id")
         .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
 
-      let playerTwoObj = await knex("combatants")
+      let playerTwoObj = await database("combatants")
         .where({ "combatants.id": battle.player_2_id })
         .orWhere({ "combatants.team_id": battle.player_2_id })
         .join("armies", "combatants.army_id", "=", "armies.id")
@@ -78,7 +64,7 @@ const battleFormattingVerionOne = async (array) => {
         .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
 
       const playerOneArray = playerOneObj.map(async (player) => {
-        let playerRankQuery = knex(subquery)
+        let playerRankQuery = database(subquery)
           .as("ranking_two")
           .where("rn", 1)
           .andWhere("army_id", player.id)
@@ -96,7 +82,7 @@ const battleFormattingVerionOne = async (array) => {
       });
 
       const playerTwoArray = playerTwoObj.map(async (player) => {
-        let playerRankQuery = knex(subquery)
+        let playerRankQuery = database(subquery)
           .as("ranking_two")
           .where("rn", 1)
           .andWhere("army_id", player.id)
@@ -157,10 +143,10 @@ const battleFormattingVerionOne = async (array) => {
 const completedBattleFormattingLimited = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battle-view")
+      database("battle-view")
         .where({ status: "submitted" })
         .orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();
@@ -243,10 +229,10 @@ const completedBattleFormattingLimited = async () => {
 const completedBattleFormatting = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battle-view")
+      database("battle-view")
         .where({ status: "submitted" })
         .orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();
@@ -329,7 +315,7 @@ const completedBattleFormatting = async () => {
 const formatOneBattle = async (id) => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battles")
+      database("battles")
         .select(
           "battles.*",
           "a1.type AS a1_type",
@@ -369,7 +355,7 @@ const formatOneBattle = async (id) => {
         .join("users as u2", "a2.user_id", "=", "u2.id")
         .where("battles.id", "=", id)
         .orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();
@@ -452,10 +438,10 @@ const formatOneBattle = async (id) => {
 const userCompletedBattleFormatting = async (id) => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battle-view")
+      database("battle-view")
         .where({ status: "submitted" })
         .orderBy("date", "desc"),
-      knex("rank_view")
+      database("rank_view")
         .where("rn", 1)
         .join("armies", "rank_view.army_id", "=", "armies.id"),
     ]);
@@ -593,8 +579,8 @@ const userCompletedBattleFormatting = async (id) => {
 const userUpcomingBattleFormatting = async (id) => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battle-view").where({ status: null }).orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("battle-view").where({ status: null }).orderBy("date", "desc"),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();
@@ -677,7 +663,7 @@ const userUpcomingBattleFormatting = async (id) => {
 const upcomingBattleFormattingLimited = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battles")
+      database("battles")
         .select(
           "battles.*",
           "a1.type AS a1_type",
@@ -717,7 +703,7 @@ const upcomingBattleFormattingLimited = async () => {
         .join("users as u2", "a2.user_id", "=", "u2.id")
         .where({ status: null })
         .orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();
@@ -800,8 +786,8 @@ const upcomingBattleFormattingLimited = async () => {
 const upcomingBattleFormatting = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battle-view").where({ status: null }).orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("battle-view").where({ status: null }).orderBy("date", "desc"),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();
@@ -884,10 +870,10 @@ const upcomingBattleFormatting = async () => {
 const completedArmiesBattleFormatting = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
-      knex("battle-view")
+      database("battle-view")
         .where({ status: "submitted" })
         .orderBy("date", "desc"),
-      knex("rank_view").where("rn", 1),
+      database("rank_view").where("rn", 1),
     ]);
 
     const battleMap = new Map();

@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
-const knex = require("knex")(require("../knexfile"));
+const database = require("../database/db");
 const dayjs = require("dayjs");
 const {
   battleFormatting,
@@ -14,9 +14,9 @@ const {
 } = require("../utils/ArrayMethods");
 const { getTokenProfile } = require("../utils/Auth");
 
-const pool = knex.client.pool;
+const pool = database.client.pool;
 
-knex.on("query", (builder) => {
+database.on("query", (builder) => {
   console.log("Battle Controller to be executed", builder.sql);
   console.log("Battle Controller Pool Used on Start", pool.numUsed());
   console.log(
@@ -27,13 +27,13 @@ knex.on("query", (builder) => {
   console.log("Battle Controller Pool Free on Start", pool.numFree());
 });
 
-knex.on("query-response", (response, builder) => {
+database.on("query-response", (response, builder) => {
   console.log("Battle Controller Query executed successfully:", builder.sql);
   console.log("Battle Controller Pool Used on response", pool.numUsed());
   console.log("Battle Controller Pool Free on response", pool.numFree());
 });
 
-knex.on("query-error", (error, builder) => {
+database.on("query-error", (error, builder) => {
   console.error("Error executing query:", builder.sql, error);
   console.log("Battle Controller Error Pool Used on error", pool.numUsed());
   console.log("Battle Controller Error Pool Free on error", pool.numFree());
@@ -41,7 +41,7 @@ knex.on("query-error", (error, builder) => {
 
 const createCombatant = async (playerObj, trx) => {
   try {
-    await knex("combatants").insert(playerObj);
+    await database("combatants").insert(playerObj);
     return true;
   } catch (error) {
     console.error(error);
@@ -68,11 +68,11 @@ const singleToMultiCombatantUpdate = async (
 ) => {
   for (i = 0; i < playerArray.length; i++) {
     if (playerArray[i].id === prevPlayerID) {
-      await knex("combatants").where(
+      await database("combatants").where(
         { id: prevPlayerID }.update({ team_id: teamID })
       );
     } else {
-      await knex("combatants").insert({
+      await database("combatants").insert({
         id: crypto.randomUUID(),
         army_id: playerArray[i].army_id,
         team_id: teamID,
@@ -80,34 +80,34 @@ const singleToMultiCombatantUpdate = async (
     }
   }
 
-  return await knex("combatants").where({ team_id: teamID });
+  return await database("combatants").where({ team_id: teamID });
 };
 
 const deleteCombatantTeam = async (teamID) => {
-  await knex("combatants").where({ team_id: teamID }).del();
+  await database("combatants").where({ team_id: teamID }).del();
   return;
 };
 
 const addCombatant = async (army_id, combatantID) => {
-  await knex("combatants").insert({ id: combatantID, army_id: army_id });
+  await database("combatants").insert({ id: combatantID, army_id: army_id });
 
-  return await knex("combatants").where({ id: combatantID }).first();
+  return await database("combatants").where({ id: combatantID }).first();
 };
 
 const assignNewCombatant = async (battleID, combatantID, player) => {
   if (player === 1) {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ player_1_id: combatantID });
   } else if (player === 2) {
-    await knex("battles")
+    await database("battles")
       .where({ id: battleID })
       .update({ player_2_id: combatantID });
   }
 };
 
 const fetchBattleCombatantArmy = async (playerID, player) => {
-  const armyObj = await knex("battles")
+  const armyObj = await database("battles")
     .join("combatants", `battles.player_${player}_id`, "=", "combatants.id")
     .where({ "combatants.id": playerID })
     .select("combatants.army_id")
@@ -117,7 +117,7 @@ const fetchBattleCombatantArmy = async (playerID, player) => {
 };
 
 const fetchRecentArmyRank = async (armyID) => {
-  const armyRankObj = await knex("rank")
+  const armyRankObj = await database("rank")
     .where({ army_id: armyID })
     .orderBy("date", "desc")
     .first()
@@ -206,7 +206,7 @@ const rankChangeLoss = (loserRank, winnerRank) => {
 };
 
 const createNewRank = async (newRank, armyID, battleType) => {
-  const query = knex("rank_view").where("rn", 1).orderBy("ranking", "desc");
+  const query = database("rank_view").where("rn", 1).orderBy("ranking", "desc");
 
   const currentRankPosition =
     (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
@@ -223,7 +223,7 @@ const createNewRank = async (newRank, armyID, battleType) => {
   };
 
   try {
-    await knex("rank").insert(newRankObj);
+    await database("rank").insert(newRankObj);
     return newRankObj;
   } catch (error) {
     console.error(error);
@@ -233,7 +233,7 @@ const createNewRank = async (newRank, armyID, battleType) => {
 
 const fetchAllBattles = async (req, res) => {
   try {
-    const battleArray = await knex("battles");
+    const battleArray = await database("battles");
 
     const formattedBattleArray = await battleFormatting(battleArray);
 
@@ -292,7 +292,9 @@ const fetchUsersUpcomingBattles = async (req, res) => {
 
   try {
     const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
-    const profile = await knex("users").where({ id: decodedToken.id }).first();
+    const profile = await database("users")
+      .where({ id: decodedToken.id })
+      .first();
 
     delete profile.password;
     const userID = profile.id;
@@ -325,7 +327,7 @@ const fetchUsersCompletedBattles = async (req, res) => {
 
   try {
     const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
-    // const profile = await knex("users").where({ id: decodedToken.id }).first();
+    // const profile = await database("users").where({ id: decodedToken.id }).first();
 
     const profile = await getTokenProfile(decodedToken.id);
 
@@ -354,7 +356,7 @@ const fetchAllUsersBattles = async (req, res) => {
   const userID = req.params.id;
 
   try {
-    const battleArray = await knex("battles")
+    const battleArray = await database("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -383,7 +385,7 @@ const fetchAllUsersBattlesCount = async (req, res) => {
   const userID = req.params.id;
 
   try {
-    const battleArray = await knex("battles")
+    const battleArray = await database("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -410,7 +412,7 @@ const fetchUsersCompletedBattlesCount = async (req, res) => {
   const userID = req.params.id;
 
   try {
-    const battleArray = await knex("battles")
+    const battleArray = await database("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -432,7 +434,7 @@ const fetchUsersUpcomingBattlesCount = async (req, res) => {
   const date = Date.now();
 
   try {
-    const battleArray = await knex("battles")
+    const battleArray = await database("battles")
       .innerJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -456,7 +458,7 @@ const fetchUsersWinCount = async (req, res) => {
   const date = Date.now();
 
   try {
-    const winArray = knex("battles")
+    const winArray = database("battles")
       .crossJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")
@@ -491,7 +493,7 @@ const fetchUsersWinPercent = async (req, res) => {
   const date = Date.now();
 
   try {
-    const winArray = await knex("battles")
+    const winArray = await database("battles")
       .crossJoin("combatants", (builder) => {
         builder
           .on("battles.player_1_id", "=", "combatants.id")

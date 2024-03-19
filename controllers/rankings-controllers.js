@@ -52,7 +52,8 @@ const fetchTopFiveRanking = async (req, res) => {
     const rankArray = await database("rank_view")
       .join("armies", "armies.id", "=", "army_id")
       .join("users", "armies.user_id", "=", "users.id")
-      .where("rn", "=", 1);
+      .where("rn", "=", 1)
+      .orderBy("ranking", "desc");
 
     const fantasyArray = rankArray
       .filter((army) => army.type.toLowerCase() === "fantasy")

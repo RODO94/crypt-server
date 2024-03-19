@@ -1,13 +1,13 @@
 const database = require("../database/db");
 const dayjs = require("dayjs");
 
-const pool = database.client.pool;
+// const pool = database.client.pool;
 
-database.on("query", (builder) => {
-  console.log("Array Methods to be executed", builder.sql);
-  console.log("Array Methods Pool Used on Start", pool.numUsed());
-  console.log("Array Methods Pool Free on Start", pool.numFree());
-});
+// database.on("query", (builder) => {
+//   console.log("Array Methods to be executed", builder.sql);
+//   console.log("Array Methods Pool Used on Start", pool.numUsed());
+//   console.log("Array Methods Pool Free on Start", pool.numFree());
+// });
 
 const joinCombatantsArmiesUsers = async (id) => {
   const array = await database("combatants")

@@ -1,29 +1,29 @@
 const database = require("../database/db");
 
-const pool = database.client.pool;
+// const pool = database.client.pool;
 
-database.on("query", (builder) => {
-  console.log("Ranking Controller to be executed", builder.sql);
-  console.log("Ranking Controller Pool Used on Start", pool.numUsed());
-  console.log(
-    "Ranking Controller Pool Used on Start",
-    pool.numPendingAcquires()
-  );
+// database.on("query", (builder) => {
+//   console.log("Ranking Controller to be executed", builder.sql);
+//   console.log("Ranking Controller Pool Used on Start", pool.numUsed());
+//   console.log(
+//     "Ranking Controller Pool Used on Start",
+//     pool.numPendingAcquires()
+//   );
 
-  console.log("Ranking Controller Pool Free on Start", pool.numFree());
-});
+//   console.log("Ranking Controller Pool Free on Start", pool.numFree());
+// });
 
-database.on("query-response", (response, builder) => {
-  console.log("Ranking Controller Query executed successfully:", builder.sql);
-  console.log("Ranking Controller Pool Used on response", pool.numUsed());
-  console.log("Ranking Controller Pool Free on response", pool.numFree());
-});
+// database.on("query-response", (response, builder) => {
+//   console.log("Ranking Controller Query executed successfully:", builder.sql);
+//   console.log("Ranking Controller Pool Used on response", pool.numUsed());
+//   console.log("Ranking Controller Pool Free on response", pool.numFree());
+// });
 
-database.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-  console.log("Ranking Controller Error Pool Used on error", pool.numUsed());
-  console.log("Ranking Controller Error Pool Free on error", pool.numFree());
-});
+// database.on("query-error", (error, builder) => {
+//   console.error("Error executing query:", builder.sql, error);
+//   console.log("Ranking Controller Error Pool Used on error", pool.numUsed());
+//   console.log("Ranking Controller Error Pool Free on error", pool.numFree());
+// });
 
 const fetchAllRankings = async (req, res) => {
   try {

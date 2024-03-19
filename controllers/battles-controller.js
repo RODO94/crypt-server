@@ -16,28 +16,28 @@ const { getTokenProfile } = require("../utils/Auth");
 
 const pool = database.client.pool;
 
-database.on("query", (builder) => {
-  console.log("Battle Controller to be executed", builder.sql);
-  console.log("Battle Controller Pool Used on Start", pool.numUsed());
-  console.log(
-    "Battle Controller Pool Used on Start",
-    pool.numPendingAcquires()
-  );
+// database.on("query", (builder) => {
+//   console.log("Battle Controller to be executed", builder.sql);
+//   console.log("Battle Controller Pool Used on Start", pool.numUsed());
+//   console.log(
+//     "Battle Controller Pool Used on Start",
+//     pool.numPendingAcquires()
+//   );
 
-  console.log("Battle Controller Pool Free on Start", pool.numFree());
-});
+//   console.log("Battle Controller Pool Free on Start", pool.numFree());
+// });
 
-database.on("query-response", (response, builder) => {
-  console.log("Battle Controller Query executed successfully:", builder.sql);
-  console.log("Battle Controller Pool Used on response", pool.numUsed());
-  console.log("Battle Controller Pool Free on response", pool.numFree());
-});
+// database.on("query-response", (response, builder) => {
+//   console.log("Battle Controller Query executed successfully:", builder.sql);
+//   console.log("Battle Controller Pool Used on response", pool.numUsed());
+//   console.log("Battle Controller Pool Free on response", pool.numFree());
+// });
 
-database.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-  console.log("Battle Controller Error Pool Used on error", pool.numUsed());
-  console.log("Battle Controller Error Pool Free on error", pool.numFree());
-});
+// database.on("query-error", (error, builder) => {
+//   console.error("Error executing query:", builder.sql, error);
+//   console.log("Battle Controller Error Pool Used on error", pool.numUsed());
+//   console.log("Battle Controller Error Pool Free on error", pool.numFree());
+// });
 
 const createCombatant = async (playerObj, trx) => {
   try {
@@ -199,17 +199,57 @@ const rankChangeLoss = (loserRank, winnerRank) => {
   rankDiff >= 10
     ? (rankChange = 0)
     : rankDiff <= -10
-    ? (rankChange = 2)
+    ? (rankChange = -2)
     : (rankChange = rankDiff * 0.1 - 1);
 
   return rankChange;
 };
 
-const createNewRank = async (newRank, armyID, battleType) => {
-  const query = database("rank_view").where("rn", 1).orderBy("ranking", "desc");
+const createNewRank = async (newRank, armyID, battleType, date) => {
+  const query = await database("rank_view")
+    .where("rn", 1)
+    .andWhere({ army_id: armyID })
+    .orderBy("ranking", "desc");
 
   const currentRankPosition =
-    (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
+    query.findIndex((ranking) => ranking.army_id === armyID) + 1;
+
+  const newRankObj = {
+    id: crypto.randomUUID(),
+    date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
+    ranking: newRank,
+    army_id: armyID,
+    prev_ranking: currentRankPosition,
+  };
+
+  try {
+    await database("rank").insert(newRankObj);
+    return newRankObj;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+
+const deleteCreateNewRank = async (newRank, armyID, battleType) => {
+  const deleteQuery = await database("rank_view")
+    .where("rn", 1)
+    .andWhere({ army_id: armyID })
+    .first();
+
+  const deleteRankResponse = await database("rank")
+    .where({
+      id: deleteQuery.id,
+    })
+    .delete();
+
+  const query = await database("rank_view")
+    .where("rn", 1)
+    .andWhere({ army_id: armyID })
+    .orderBy("ranking", "desc");
+
+  const currentRankPosition =
+    query.findIndex((ranking) => ranking.army_id === armyID) + 1;
 
   // TODO: Change date to date of battle
   const date = Date.now();
@@ -560,4 +600,5 @@ module.exports = {
   fetchUsersWinPercent,
   fetchOneBattle,
   createCombatant,
+  deleteCreateNewRank,
 };

@@ -37,28 +37,29 @@ const {
   fetchUsersWinPercent,
   fetchOneBattle,
   multiplayerMapping,
+  deleteCreateNewRank,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 const pool = database.client.pool;
 
-database.on("query", (builder) => {
-  console.log("Battle Routes to be executed", builder.sql);
-  console.log("Battle Routes Pool Used on Start", pool.numUsed());
-  console.log("Battle Routes Pool Used on Start", pool.numPendingAcquires());
-  console.log("Battle Routes Pool Free on Start", pool.numFree());
-});
+// database.on("query", (builder) => {
+//   console.log("Battle Routes to be executed", builder.sql);
+//   console.log("Battle Routes Pool Used on Start", pool.numUsed());
+//   console.log("Battle Routes Pool Used on Start", pool.numPendingAcquires());
+//   console.log("Battle Routes Pool Free on Start", pool.numFree());
+// });
 
-database.on("query-response", (response, builder) => {
-  console.log("Battle Routes Query executed successfully:", builder.sql);
-  console.log("Battle Routes Pool Used on response", pool.numUsed());
-  console.log("Battle Routes Pool Free on response", pool.numFree());
-});
+// database.on("query-response", (response, builder) => {
+//   console.log("Battle Routes Query executed successfully:", builder.sql);
+//   console.log("Battle Routes Pool Used on response", pool.numUsed());
+//   console.log("Battle Routes Pool Free on response", pool.numFree());
+// });
 
-database.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-  console.log("Battle Routes Error Pool Used on error", pool.numUsed());
-  console.log("Battle Routes Error Pool Free on error", pool.numFree());
-});
+// database.on("query-error", (error, builder) => {
+//   console.error("Error executing query:", builder.sql, error);
+//   console.log("Battle Routes Error Pool Used on error", pool.numUsed());
+//   console.log("Battle Routes Error Pool Free on error", pool.numFree());
+// });
 
 router.route("/create").post(headerAuth, async (req, res) => {
   let {
@@ -120,9 +121,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
     try {
       await database.transaction(async (trx) => {
         await trx("combatants").insert([playerOne, playerTwo]);
-        console.log("after combatants added pool used is", pool.numUsed());
         await trx("battles").insert(newBattleObj);
-        console.log("after battle added pool used is", pool.numUsed());
       });
       res.status(200).send(`Battle created with ID ${newBattleObj.id}`);
     } catch (error) {
@@ -713,6 +712,7 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
       battleWinner === battleObj.player_2_id
     ) {
       const rankChangeWinner = rankChangeWin(rankTwo.ranking, rankOne.ranking);
+
       const rankChangeLoser = rankChangeLoss(rankOne.ranking, rankTwo.ranking);
 
       const newRankWinner = Number(rankTwo.ranking) + Number(rankChangeWinner);
@@ -779,107 +779,147 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
 
-  if (battleObj.player_type === "multi") {
-    try {
-      await database("battles").where({ id: battleID }).update({
-        status: "submitted",
-        winner: battleWinner,
-        result: finalResult,
-      });
+  try {
+    await database("battles").where({ id: battleID }).update({
+      status: "submitted",
+      winner: battleWinner,
+      result: finalResult,
+    });
 
+    if (battleObj.player_type === "multi") {
       return res
         .status(200)
         .send(await database("battles").where({ id: battleID }).first());
-    } catch (error) {
-      console.error(error);
-      res.status(400).send("Unable to submit the battle");
-    }
-  }
-
-  try {
-    const armyOne = await fetchBattleCombatantArmy(battleObj.player_1_id, 1);
-    const armyTwo = await fetchBattleCombatantArmy(battleObj.player_2_id, 2);
-
-    const rankOne = await fetchRecentArmyRank(armyOne.army_id);
-    const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
-
-    if (finalResult === "draw") {
-      const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
-
-      const newRankOne =
-        Number(rankOne.ranking) + Number(rankChangeObj.rankChangeOne);
-      const newRankTwo =
-        Number(rankTwo.ranking) + Number(rankChangeObj.rankChangeTwo);
-
-      const rankChangeOneObj = await createNewRank(
-        newRankOne,
-        armyOne.army_id,
-        battleObj.battle_type
-      );
-
-      const rankChangeTwoObj = await createNewRank(
-        newRankTwo,
-        armyTwo.army_id,
-        battleObj.battle_type
-      );
-
-      res
-        .status(200)
-        .send({ playerOne: rankChangeOneObj, playerTwo: rankChangeTwoObj });
-    } else if (
-      finalResult === "victory" &&
-      battleWinner === battleObj.player_1_id
-    ) {
-      const rankChangeWinner = rankChangeWin(rankOne.ranking, rankTwo.ranking);
-      const rankChangeLoser = rankChangeLoss(rankTwo.ranking, rankOne.ranking);
-
-      const newRankWinner = Number(rankOne.ranking) + Number(rankChangeWinner);
-      const newRankLoser = Number(rankTwo.ranking) + Number(rankChangeLoser);
-
-      const newWinnerRankObj = await createNewRank(
-        newRankWinner,
-        armyOne.army_id,
-        battleObj.battle_type
-      );
-
-      const newLoserRankObj = await createNewRank(
-        newRankLoser,
-        armyTwo.army_id,
-        battleObj.battle_type
-      );
-
-      res
-        .status(200)
-        .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
-    } else if (
-      finalResult === "victory" &&
-      battleWinner === battleObj.player_2_id
-    ) {
-      const rankChangeWinner = rankChangeWin(rankTwo.ranking, rankOne.ranking);
-      const rankChangeLoser = rankChangeLoss(rankOne.ranking, rankTwo.ranking);
-
-      const newRankWinner = Number(rankTwo.ranking) + Number(rankChangeWinner);
-      const newRankLoser = Number(rankOne.ranking) + Number(rankChangeLoser);
-
-      const newWinnerRankObj = await createNewRank(
-        newRankWinner,
-        armyTwo.army_id,
-        battleObj.battle_type
-      );
-
-      const newLoserRankObj = await createNewRank(
-        newRankLoser,
-        armyOne.army_id,
-        battleObj.battle_type
-      );
-
-      res
-        .status(200)
-        .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
     }
   } catch (error) {
     console.error(error);
-    res.status(400).send("Unable to submit battle");
+    res.status(400).send("Unable to submit the battle");
+  }
+
+  if (battleObj.player_type === "single") {
+    try {
+      const armyOne = await fetchBattleCombatantArmy(battleObj.player_1_id, 1);
+      const armyTwo = await fetchBattleCombatantArmy(battleObj.player_2_id, 2);
+
+      const rankOneObj = await database("rank_view")
+        .where({
+          army_id: armyOne.army_id,
+          rn: 1,
+        })
+        .first();
+
+      const rankTwoObj = await database("rank_view")
+        .where({
+          army_id: armyTwo.army_id,
+          rn: 1,
+        })
+        .first();
+
+      const deleteRankOne = await database("rank")
+        .where({ id: rankOneObj.id })
+        .delete();
+
+      const deleteRankTwo = await database("rank")
+        .where({ id: rankTwoObj.id })
+        .delete();
+
+      const rankOne = await fetchRecentArmyRank(armyOne.army_id);
+      const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
+
+      if (finalResult === "draw") {
+        const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
+
+        const newRankOne =
+          Number(rankOne.ranking) + Number(rankChangeObj.rankChangeOne);
+        const newRankTwo =
+          Number(rankTwo.ranking) + Number(rankChangeObj.rankChangeTwo);
+
+        const rankChangeOneObj = await createNewRank(
+          newRankOne,
+          armyOne.army_id,
+          battleObj.battle_type
+        );
+
+        const rankChangeTwoObj = await createNewRank(
+          newRankTwo,
+          armyTwo.army_id,
+          battleObj.battle_type
+        );
+
+        res
+          .status(200)
+          .send({ playerOne: rankChangeOneObj, playerTwo: rankChangeTwoObj });
+      } else if (
+        finalResult === "victory" &&
+        battleWinner === battleObj.player_1_id
+      ) {
+        const rankChangeWinner = rankChangeWin(
+          rankOne.ranking,
+          rankTwo.ranking
+        );
+        const rankChangeLoser = rankChangeLoss(
+          rankTwo.ranking,
+          rankOne.ranking
+        );
+
+        const newRankWinner =
+          Number(rankOne.ranking) + Number(rankChangeWinner);
+        const newRankLoser = Number(rankTwo.ranking) + Number(rankChangeLoser);
+
+        const newWinnerRankObj = await createNewRank(
+          newRankWinner,
+          armyOne.army_id,
+          battleObj.battle_type,
+          battleObj.date
+        );
+
+        const newLoserRankObj = await createNewRank(
+          newRankLoser,
+          armyTwo.army_id,
+          battleObj.battle_type,
+          battleObj.date
+        );
+
+        res
+          .status(200)
+          .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
+      } else if (
+        finalResult === "victory" &&
+        battleWinner === battleObj.player_2_id
+      ) {
+        const rankChangeWinner = rankChangeWin(
+          rankTwo.ranking,
+          rankOne.ranking
+        );
+        const rankChangeLoser = rankChangeLoss(
+          rankOne.ranking,
+          rankTwo.ranking
+        );
+
+        const newRankWinner =
+          Number(rankTwo.ranking) + Number(rankChangeWinner);
+        const newRankLoser = Number(rankOne.ranking) + Number(rankChangeLoser);
+
+        const newWinnerRankObj = await createNewRank(
+          newRankWinner,
+          armyTwo.army_id,
+          battleObj.battle_type
+        );
+
+        const newLoserRankObj = await createNewRank(
+          newRankLoser,
+          armyOne.army_id,
+          battleObj.battle_type
+        );
+
+        res
+          .status(200)
+          .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(400).send("Unable to submit battle");
+    }
   }
 });
 

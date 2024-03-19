@@ -3,27 +3,27 @@ const dayjs = require("dayjs");
 const crypto = require("crypto");
 const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
 
-const pool = database.client.pool;
+// const pool = database.client.pool;
 
-database.on("query", (builder) => {
-  console.log("Army Controller to be executed", builder.sql);
-  console.log("Army Controller Pool Used on Start", pool.numUsed());
-  console.log("Army Controller Pool Used on Start", pool.numPendingAcquires());
+// database.on("query", (builder) => {
+//   console.log("Army Controller to be executed", builder.sql);
+//   console.log("Army Controller Pool Used on Start", pool.numUsed());
+//   console.log("Army Controller Pool Used on Start", pool.numPendingAcquires());
 
-  console.log("Army Controller Pool Free on Start", pool.numFree());
-});
+//   console.log("Army Controller Pool Free on Start", pool.numFree());
+// });
 
-database.on("query-response", (response, builder) => {
-  console.log("Army Controller Query executed successfully:", builder.sql);
-  console.log("Army Controller Pool Used on response", pool.numUsed());
-  console.log("Army Controller Pool Free on response", pool.numFree());
-});
+// database.on("query-response", (response, builder) => {
+//   console.log("Army Controller Query executed successfully:", builder.sql);
+//   console.log("Army Controller Pool Used on response", pool.numUsed());
+//   console.log("Army Controller Pool Free on response", pool.numFree());
+// });
 
-database.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-  console.log("Army Controller Error Pool Used on error", pool.numUsed());
-  console.log("Army Controller Error Pool Free on error", pool.numFree());
-});
+// database.on("query-error", (error, builder) => {
+//   console.error("Error executing query:", builder.sql, error);
+//   console.log("Army Controller Error Pool Used on error", pool.numUsed());
+//   console.log("Army Controller Error Pool Free on error", pool.numFree());
+// });
 
 const armyCountFn = (array) => {
   const returnArray = [];
@@ -453,7 +453,6 @@ const getArmyInfo = async (req, res) => {
         let playerBool = battle.player_1.find(
           (player) => player.army_id === armyID
         );
-        console.log(playerBool ? true : false);
         const targetPlayer = playerBool ? 1 : 2;
 
         // then define is winner was player 1 or 2
@@ -484,7 +483,6 @@ const getArmyInfo = async (req, res) => {
 const insertNewArmy = async (armyObj, trx) => {
   try {
     await trx("armies").insert(armyObj);
-    console.log("Connections used during Insert Army", pool.numUsed());
     return true;
   } catch (error) {
     console.error(error);

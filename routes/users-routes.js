@@ -21,26 +21,26 @@ require("dotenv").config();
 const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
 const clientURL = `${process.env.CLIENT_URL}`;
 
-const pool = database.client.pool;
-database.on("query", (builder) => {
-  console.log("User Routes to be executed", builder.sql);
-  console.log("User Routes Pool Used on Start", pool.numUsed());
-  console.log("User Routes Pool Used on Start", pool.numPendingAcquires());
+// const pool = database.client.pool;
+// database.on("query", (builder) => {
+//   console.log("User Routes to be executed", builder.sql);
+//   console.log("User Routes Pool Used on Start", pool.numUsed());
+//   console.log("User Routes Pool Used on Start", pool.numPendingAcquires());
 
-  console.log("User Routes Pool Free on Start", pool.numFree());
-});
+//   console.log("User Routes Pool Free on Start", pool.numFree());
+// });
 
-database.on("query-response", (response, builder) => {
-  console.log("User Routes Query executed successfully:", builder.sql);
-  console.log("User Routes Pool Used on response", pool.numUsed());
-  console.log("User Routes Pool Free on response", pool.numFree());
-});
+// database.on("query-response", (response, builder) => {
+//   console.log("User Routes Query executed successfully:", builder.sql);
+//   console.log("User Routes Pool Used on response", pool.numUsed());
+//   console.log("User Routes Pool Free on response", pool.numFree());
+// });
 
-database.on("query-error", (error, builder) => {
-  console.error("Error executing query:", builder.sql, error);
-  console.log("User Routes Error Pool Used on error", pool.numUsed());
-  console.log("User Routes Error Pool Free on error", pool.numFree());
-});
+// database.on("query-error", (error, builder) => {
+//   console.error("Error executing query:", builder.sql, error);
+//   console.log("User Routes Error Pool Used on error", pool.numUsed());
+//   console.log("User Routes Error Pool Free on error", pool.numFree());
+// });
 
 const transport = nodemailer.createTransport({
   host: "live.smtp.mailtrap.io",

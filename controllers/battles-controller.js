@@ -222,6 +222,8 @@ const createNewRank = async (newRank, armyID, battleType, date) => {
     prev_ranking: currentRankPosition,
   };
 
+  console.log(newRankObj);
+
   try {
     await database("rank").insert(newRankObj);
     return newRankObj;

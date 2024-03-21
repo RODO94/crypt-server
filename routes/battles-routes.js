@@ -824,6 +824,8 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
         })
         .first();
 
+      console.log({ statusOf: "Before Deleting", rankOneObj, rankTwoObj });
+
       const deleteRankOne = await database("rank")
         .where({ id: rankOneObj.id })
         .delete();
@@ -834,6 +836,8 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
 
       const rankOne = await fetchRecentArmyRank(armyOne.army_id);
       const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
+
+      console.log({ statusOf: "After Deleting", rankOne, rankTwo });
 
       if (finalResult === "draw") {
         const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
@@ -919,6 +923,13 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
           newRankLoser,
           armyOne.army_id,
           battleObj.battle_type
+        );
+
+        console.log(
+          rankChangeWinner,
+          rankChangeLoser,
+          newRankWinner,
+          newRankLoser
         );
 
         res

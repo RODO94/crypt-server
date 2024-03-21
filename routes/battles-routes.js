@@ -706,13 +706,6 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
         battleObj.battle_type
       );
 
-      console.log(
-        rankChangeWinner,
-        rankChangeLoser,
-        newRankWinner,
-        newRankLoser
-      );
-
       res
         .status(200)
         .send({ Winner: newWinnerRankObj, Loser: newLoserRankObj });
@@ -737,6 +730,13 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
         newRankLoser,
         armyOne.army_id,
         battleObj.battle_type
+      );
+
+      console.log(
+        rankChangeWinner,
+        rankChangeLoser,
+        newRankWinner,
+        newRankLoser
       );
 
       res

@@ -180,6 +180,7 @@ const completedBattleFormattingLimited = async () => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -193,6 +194,7 @@ const completedBattleFormattingLimited = async () => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -266,6 +268,7 @@ const completedBattleFormatting = async () => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -279,6 +282,7 @@ const completedBattleFormatting = async () => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -389,6 +393,7 @@ const formatOneBattle = async (id) => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -402,6 +407,7 @@ const formatOneBattle = async (id) => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -530,6 +536,7 @@ const userCompletedBattleFormatting = async (id) => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -543,6 +550,7 @@ const userCompletedBattleFormatting = async (id) => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -614,6 +622,7 @@ const userUpcomingBattleFormatting = async (id) => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -627,6 +636,7 @@ const userUpcomingBattleFormatting = async (id) => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -737,6 +747,7 @@ const upcomingBattleFormattingLimited = async () => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -750,6 +761,7 @@ const upcomingBattleFormattingLimited = async () => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -821,6 +833,7 @@ const upcomingBattleFormatting = async () => {
           id: battle.a2_userid,
           known_as: battle.u2_known_as,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -834,6 +847,7 @@ const upcomingBattleFormatting = async () => {
           id: battle.a1_userid,
           known_as: battle.u1_known_as,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });
@@ -908,6 +922,7 @@ const completedArmiesBattleFormatting = async () => {
           known_as: battle.u2_known_as,
           emblem: battle.a2_emblem,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
+          emblem: battle.a2_emblem,
         });
       }
 
@@ -922,6 +937,7 @@ const completedArmiesBattleFormatting = async () => {
           known_as: battle.u1_known_as,
           emblem: battle.a1_emblem,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
+          emblem: battle.a1_emblem,
         });
       }
     });

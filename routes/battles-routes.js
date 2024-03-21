@@ -659,6 +659,8 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
     const rankOne = await fetchRecentArmyRank(armyOne.army_id);
     const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
 
+    console.log({ rankOne, rankTwo });
+
     if (finalResult === "draw") {
       const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
 
@@ -702,6 +704,13 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
         newRankLoser,
         armyTwo.army_id,
         battleObj.battle_type
+      );
+
+      console.log(
+        rankChangeWinner,
+        rankChangeLoser,
+        newRankWinner,
+        newRankLoser
       );
 
       res

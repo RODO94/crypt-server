@@ -827,7 +827,7 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
       console.log({ statusOf: "Before Deleting", rankOneObj, rankTwoObj });
 
       const deleteRankOne = await database("rank")
-        .where({ id: rankOneObj.id })
+        .where("rank.id", "=", rankOneObj.id)
         .delete();
 
       const deleteRankTwo = await database("rank")

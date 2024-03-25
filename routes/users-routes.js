@@ -450,4 +450,15 @@ router.route("/nemesis").get(getUserNemesis);
 router.route("/ally").get(getUserAlly);
 
 router.route("/user/info").get(getUserInfo);
+router.route("/user/authenticate/:token").get((req, res) => {
+  const token = req.params.token;
+
+  const response = verifyToken(token);
+
+  if (response) {
+    return res.status(200).send(true);
+  } else {
+    return res.status(401).send(false);
+  }
+});
 module.exports = router;

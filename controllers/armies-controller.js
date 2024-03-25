@@ -447,31 +447,24 @@ const getArmyInfo = async (req, res) => {
 
     let userArray = allyArray.filter((player) => player.army_id === armyID);
 
-    let winArray = filterArray.map((battle) => {
-      // For each battle determine which player, army ID is
-      let playerBool = battle.player_1.find(
-        (player) => player.army_id === armyID
-      );
-      const targetPlayer = playerBool ? 1 : 2;
+    let winArray = filterArray
+      .map((battle) => {
+        let playerBool = battle.player_1.find(
+          (player) => player.army_id === armyID
+        );
+        const targetPlayer = playerBool ? 1 : 2;
 
-      console.log(targetPlayer);
-      // then define is winner was player 1 or 2
+        const winnerPlayer = battle.combatant_1_id === battle.winner ? 1 : 2;
 
-      const winnerPlayer = battle.combatant_1_id === battle.winner ? 1 : 2;
-
-      console.log({ winnerPlayer, targetPlayer, result: battle.result });
-      // if targetplayer === winnerplayer then return battle
-
-      if (targetPlayer === winnerPlayer && battle.result !== "draw") {
-        console.log("condition passed");
-        return "win";
-      }
-    });
-
-    console.log({ array: filterArray, winArray: winArray });
+        if (targetPlayer === winnerPlayer && battle.result !== "draw") {
+          console.log("condition passed");
+          return "win";
+        }
+      })
+      .filter((win) => win);
 
     const winPercent = Math.round((winArray.length / filterArray.length) * 100);
-    console.log(winPercent);
+
     res.status(200).send({
       nemesis: sortedNemesisArray[0],
       ally: sortedAllyArray[0],

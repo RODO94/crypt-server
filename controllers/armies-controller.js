@@ -186,9 +186,11 @@ const getArmyNemesis = async (req, res) => {
       const playerOneBool = battle.player_1.find(
         (player) => player.army_id === armyID
       );
+      console.log(playerOneBool);
       const playerTwoBool = battle.player_2.find(
         (player) => player.army_id === armyID
       );
+      console.log(playerTwoBool);
       if (playerOneBool || playerTwoBool) {
         return true;
       } else {
@@ -254,6 +256,8 @@ const getArmyNemesis = async (req, res) => {
     });
 
     const sortedOpponentArray = armyArray.sort((a, b) => b.count - a.count);
+
+    // console.log(formattedBattleArray[0].player_1);
 
     res.status(200).send(sortedOpponentArray[0]);
   } catch (error) {

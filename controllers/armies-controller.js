@@ -149,7 +149,7 @@ const getAllUserArmies = async (req, res) => {
       .join("armies", "combatants.army_id", "=", "armies.id")
       .where("armies.user_id", "=", id)
       .rowNumber("count", { column: "user_id", order: "desc" }, "army_id")
-      .select("army_id", "armies.name", "armies.type")
+      .select("army_id", "armies.name", "armies.type", "armies.emblem")
       .as("battleArray");
 
     const maxCountArray = [];

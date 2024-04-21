@@ -320,17 +320,19 @@ const fetchFiveUpcomingBattles = async (req, res) => {
         dayjs(a.date, "YYYY-MM-DD").valueOf() -
         dayjs(b.date, "YYYY-MM-DD").valueOf()
     );
-    const currentDate = Date.now();
+    const currentDate = dayjs(Date.now());
 
-    console.log(`Current date ${currentDate}`);
+    const finalArray = sortedArray
+      .filter((battle) => {
+        let dateOne = dayjs(battle.date, "YYYY-MM-dd");
+        let difference = dateOne.diff(currentDate, "day");
+        if (difference >= 0) {
+          return true;
+        } else return false;
+      })
+      .map((battle, index) => (index < 5 ? battle : ""))
+      .filter((battle) => battle !== "");
 
-    console.log(`Battle Date ${dayjs(sortedArray[0].date).valueOf()}`);
-
-    const finalArray = sortedArray.filter(
-      (battle) =>
-        Math.floor(dayjs(battle.date).valueOf() / 10000000) >=
-        Math.floor(dayjs(currentDate).valueOf() / 10000000)
-    );
     res.status(200).send(finalArray);
   } catch (error) {
     console.error(error);

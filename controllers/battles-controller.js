@@ -309,8 +309,17 @@ const fetchCompletedBattles = async (req, res) => {
 const fetchFiveUpcomingBattles = async (req, res) => {
   try {
     const formattedBattleArray = await upcomingBattleFormattingLimited();
+    const sortedArray = formattedBattleArray.sort(
+      (a, b) =>
+        dayjs(a.date, "YYYY-MM-DD").valueOf() -
+        dayjs(b.date, "YYYY-MM-DD").valueOf()
+    );
+    const currentDate = dayjs(Date.now);
 
-    res.status(200).send(formattedBattleArray);
+    const finalArray = sortedArray.filter(
+      (battle) => dayjs(battle.date).valueOf() >= dayjs(currentDate).valueOf
+    );
+    res.status(200).send(finalArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");

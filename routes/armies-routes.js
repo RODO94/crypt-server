@@ -21,26 +21,6 @@ const { headerAuth, adminAuth } = require("../middleware/auth");
 require("dotenv").config();
 const pool = database.client.pool;
 
-// database.on("query", (builder) => {
-//   console.log("Army Routes to be executed", builder.sql);
-//   console.log("Army Routes Pool Used on Start", pool.numUsed());
-//   console.log("Army Routes Pool Used on Start", pool.numPendingAcquires());
-
-//   console.log("Army Routes Pool Free on Start", pool.numFree());
-// });
-
-// database.on("query-response", (response, builder) => {
-//   console.log("Army Routes Query executed successfully:", builder.sql);
-//   console.log("Army Routes Pool Used on response", pool.numUsed());
-//   console.log("Army Routes Pool Free on response", pool.numFree());
-// });
-
-// database.on("query-error", (error, builder) => {
-//   console.error("Error executing query:", builder.sql, error);
-//   console.log("Army Routes Error Pool Used on error", pool.numUsed());
-//   console.log("Army Routes Error Pool Free on error", pool.numFree());
-// });
-
 router.route("/all").get(getAllArmies);
 router.route("/all/:id").get(getAllUserArmies);
 

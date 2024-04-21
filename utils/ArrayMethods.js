@@ -788,7 +788,7 @@ const upcomingBattleFormattingLimited = async () => {
       player_2: battle.playerTwo,
     }));
 
-    return responseArray.slice(4);
+    return responseArray;
   } catch (error) {
     console.error(error);
     throw error;

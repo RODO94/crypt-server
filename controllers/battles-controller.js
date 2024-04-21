@@ -329,7 +329,7 @@ const fetchFiveUpcomingBattles = async (req, res) => {
     const finalArray = sortedArray.filter(
       (battle) => dayjs(battle.date).valueOf() >= dayjs(currentDate).valueOf()
     );
-    res.status(200).send(finalArray);
+    res.status(200).send(finalArray.slice(4));
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");

@@ -328,8 +328,8 @@ const fetchFiveUpcomingBattles = async (req, res) => {
 
     const finalArray = sortedArray.filter(
       (battle) =>
-        Math.floor(dayjs(battle.date).valueOf() / 10000) >=
-        Math.floor(dayjs(currentDate).valueOf() / 10000)
+        Math.floor(dayjs(battle.date).valueOf() / 10000000) >=
+        Math.floor(dayjs(currentDate).valueOf() / 10000000)
     );
     res.status(200).send(finalArray);
   } catch (error) {

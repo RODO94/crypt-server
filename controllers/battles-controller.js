@@ -317,8 +317,8 @@ const fetchFiveUpcomingBattles = async (req, res) => {
     const formattedBattleArray = await upcomingBattleFormattingLimited();
     const sortedArray = formattedBattleArray.sort(
       (a, b) =>
-        dayjs(a.date, "YYYY-MM-DD").valueOf() -
-        dayjs(b.date, "YYYY-MM-DD").valueOf()
+        dayjs(b.date, "YYYY-MM-DD").valueOf() -
+        dayjs(a.date, "YYYY-MM-DD").valueOf()
     );
     const currentDate = Date.now();
 

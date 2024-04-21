@@ -289,7 +289,13 @@ const fetchUpcomingBattles = async (req, res) => {
   try {
     const formattedBattleArray = await upcomingBattleFormatting();
 
-    res.status(200).send(formattedBattleArray);
+    const sortedArray = formattedBattleArray.sort(
+      (a, b) =>
+        dayjs(a.date, "YYYY-MM-DD").valueOf() -
+        dayjs(b.date, "YYYY-MM-DD").valueOf()
+    );
+
+    res.status(200).send(sortedArray);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to retrieve all battles");
@@ -314,10 +320,14 @@ const fetchFiveUpcomingBattles = async (req, res) => {
         dayjs(a.date, "YYYY-MM-DD").valueOf() -
         dayjs(b.date, "YYYY-MM-DD").valueOf()
     );
-    const currentDate = dayjs(Date.now);
+    const currentDate = Date.now();
+
+    console.log(`Current date ${currentDate}`);
+
+    console.log(`Battle Date ${dayjs(sortedArray[0].date).valueOf()}`);
 
     const finalArray = sortedArray.filter(
-      (battle) => dayjs(battle.date).valueOf() >= dayjs(currentDate).valueOf
+      (battle) => dayjs(battle.date).valueOf() >= dayjs(currentDate).valueOf()
     );
     res.status(200).send(finalArray);
   } catch (error) {
@@ -355,7 +365,13 @@ const fetchUsersUpcomingBattles = async (req, res) => {
       (battle) => battle.user_1_id === userID || battle.user_2_id === userID
     );
 
-    res.status(200).send({ user: profile, battleArray: filteredUserArray });
+    const sortedArray = filteredUserArray.sort(
+      (a, b) =>
+        dayjs(a.date, "YYYY-MM-DD").valueOf() -
+        dayjs(b.date, "YYYY-MM-DD").valueOf()
+    );
+
+    res.status(200).send({ user: profile, battleArray: sortedArray });
   } catch (error) {
     console.error(error);
     return res.status(400).send("unable to retrive the battles");

@@ -93,7 +93,7 @@ router.route("/register").post(async (req, res) => {
     known_as,
     email,
     password: hashedPassword,
-    role: "admin",
+    role: "user",
     user_emblem: user_emblem ? user_emblem : "necrons",
   };
 

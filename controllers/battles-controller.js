@@ -317,8 +317,8 @@ const fetchFiveUpcomingBattles = async (req, res) => {
     const formattedBattleArray = await upcomingBattleFormattingLimited();
     const sortedArray = formattedBattleArray.sort(
       (a, b) =>
-        dayjs(a.date, "YYYY-MM-DD").valueOf() -
-        dayjs(b.date, "YYYY-MM-DD").valueOf()
+        dayjs(`${a.date} ${a.start}`, "YYYY-MM-DD hh:mm:ss").valueOf() -
+        dayjs(`${b.date} ${b.start}`, "YYYY-MM-DD hh:mm:ss").valueOf()
     );
     const currentDate = dayjs(Date.now());
 
@@ -371,8 +371,8 @@ const fetchUsersUpcomingBattles = async (req, res) => {
 
     const sortedArray = filteredUserArray.sort(
       (a, b) =>
-        dayjs(a.date, "YYYY-MM-DD").valueOf() -
-        dayjs(b.date, "YYYY-MM-DD").valueOf()
+        dayjs(`${a.date} ${a.start}`, "YYYY-MM-DD hh:mm:ss").valueOf() -
+        dayjs(`${b.date} ${b.start}`, "YYYY-MM-DD hh:mm:ss").valueOf()
     );
 
     res.status(200).send({ user: profile, battleArray: sortedArray });

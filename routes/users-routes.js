@@ -144,7 +144,7 @@ router.route("/forgot-password").post(async (req, res) => {
 
   try {
     const user = await database("users").where({ email: email }).first();
-    const emailHTML = `<h1>Hello from Crypt</h1><p>To reset your password, please use the link below</p><a href="${clientURL}/reset/${resetToken}"> Reset Your Password </a>`;
+    const emailHTML = `<h1>Reset Password for The Crypt</h1><p>Good day, my fellow combatant. <br/> It seems to me that you require assistance resetting your password... <br/> The link below will guide you on your way.</p><a href="${clientURL}/reset/${resetToken}"> Reset Your Password </a>`;
 
     await database("users")
       .where({ email: email })

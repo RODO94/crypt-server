@@ -853,13 +853,13 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
         const rankChangeOneObj = await createNewRank(
           newRankOne,
           armyOne.army_id,
-          battleObj.battle_type
+          battleObj.date
         );
 
         const rankChangeTwoObj = await createNewRank(
           newRankTwo,
           armyTwo.army_id,
-          battleObj.battle_type
+          battleObj.date
         );
 
         res
@@ -885,14 +885,12 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
         const newWinnerRankObj = await createNewRank(
           newRankWinner,
           armyOne.army_id,
-          battleObj.battle_type,
           battleObj.date
         );
 
         const newLoserRankObj = await createNewRank(
           newRankLoser,
           armyTwo.army_id,
-          battleObj.battle_type,
           battleObj.date
         );
 
@@ -919,13 +917,13 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
         const newWinnerRankObj = await createNewRank(
           newRankWinner,
           armyTwo.army_id,
-          battleObj.battle_type
+          battleObj.date
         );
 
         const newLoserRankObj = await createNewRank(
           newRankLoser,
           armyOne.army_id,
-          battleObj.battle_type
+          battleObj.date
         );
 
         console.log(

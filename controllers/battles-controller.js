@@ -216,7 +216,7 @@ const createNewRank = async (newRank, armyID, date) => {
 
   const newRankObj = {
     id: crypto.randomUUID(),
-    date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
+    date: date,
     ranking: newRank,
     army_id: armyID,
     prev_ranking: currentRankPosition,

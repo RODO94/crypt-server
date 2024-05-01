@@ -725,14 +725,12 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
       const newWinnerRankObj = await createNewRank(
         newRankWinner,
         armyTwo.army_id,
-        battleObj.battle_type,
         battleObj.date
       );
 
       const newLoserRankObj = await createNewRank(
         newRankLoser,
         armyOne.army_id,
-        battleObj.battle_type,
         battleObj.date
       );
 

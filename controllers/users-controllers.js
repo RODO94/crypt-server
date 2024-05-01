@@ -289,6 +289,20 @@ const getUserAlly = async (req, res) => {
   }
 };
 
+const getOneUserWithToken = async (req, res) => {
+  const authToken = req.headers.authorization.split(" ")[1];
+  try {
+    const decodedToken = verifyToken(authToken);
+
+    const profile = await getTokenProfile(decodedToken.id);
+
+    res.status(200).send(profile);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Unable to retrieve user");
+  }
+};
+
 const getUserInfo = async (req, res) => {
   const authToken = req.headers.authorization.split(" ")[1];
 
@@ -401,4 +415,5 @@ module.exports = {
   getUserAlly,
   getOneOtherUser,
   getUserInfo,
+  getOneUserWithToken,
 };

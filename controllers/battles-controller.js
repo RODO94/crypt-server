@@ -205,9 +205,11 @@ const rankChangeLoss = (loserRank, winnerRank) => {
   return rankChange;
 };
 
-const createNewRank = async (newRank, armyID, date) => {
+const createNewRank = async (newRank, armyID, date, type) => {
   const query = await database("rank_view")
+    .join("armies", "army_id", "=", "armies.id")
     .where("rn", 1)
+    .andWhere("armies.type", "=", type)
     .orderBy("ranking", "desc");
 
   const currentRankPosition =

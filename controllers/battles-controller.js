@@ -208,12 +208,12 @@ const rankChangeLoss = (loserRank, winnerRank) => {
 const createNewRank = async (newRank, armyID, date) => {
   const query = await database("rank_view")
     .where("rn", 1)
-    .andWhere({ army_id: armyID })
     .orderBy("ranking", "desc");
 
   const currentRankPosition =
     query.findIndex((ranking) => ranking.army_id === armyID) + 1;
-
+  console.log(query);
+  console.log(`Current Rank Position is ${currentRankPosition}`);
   const newRankObj = {
     id: crypto.randomUUID(),
     date: date,

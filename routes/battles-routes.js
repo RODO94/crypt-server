@@ -624,9 +624,11 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
       ))
     : (finalResult = "undefined");
 
-  battleObj.player_1_points > battleObj.player_2_points
+  battleObj.player_1_points > battleObj.player_2_points &&
+  finalResult !== "draw"
     ? (battleWinner = battleObj.player_1_id)
-    : battleObj.player_1_points < battleObj.player_2_points
+    : battleObj.player_1_points < battleObj.player_2_points &&
+      finalResult !== "draw"
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
 
@@ -779,9 +781,10 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
       ))
     : (finalResult = "undefined");
 
-  battleObj.player_1_points > battleObj.player_2_points
+  battleObj.player_1_points > battleObj.player_2_points &&
+  finalResult !== "draw"
     ? (battleWinner = battleObj.player_1_id)
-    : battleObj.player_1_points < battleObj.player_2_points
+    : battleObj.player_1_points < battleObj.player_2_points && finalResult !== "draw"
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
 

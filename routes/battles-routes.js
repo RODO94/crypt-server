@@ -659,8 +659,6 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
     const rankOne = await fetchRecentArmyRank(armyOne.army_id);
     const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
 
-    console.log({ rankOne, rankTwo });
-
     if (finalResult === "draw") {
       const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
 
@@ -682,8 +680,6 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
         battleObj.date,
         battleObj.battle_type
       );
-
-      console.log(`Battle Date for Multi Win ${battleObj.date}`);
 
       res
         .status(200)
@@ -738,14 +734,6 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
         armyOne.army_id,
         battleObj.date,
         battleObj.battle_type
-      );
-
-      console.log(
-        rankChangeWinner,
-        rankChangeLoser,
-        newRankWinner,
-        newRankLoser,
-        battleObj.date
       );
 
       res
@@ -833,8 +821,6 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
         })
         .first();
 
-      console.log({ statusOf: "Before Deleting", rankOneObj, rankTwoObj });
-
       const deleteRankOne = await database("rank")
         .where("rank.id", "=", rankOneObj.id)
         .delete();
@@ -845,8 +831,6 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
 
       const rankOne = await fetchRecentArmyRank(armyOne.army_id);
       const rankTwo = await fetchRecentArmyRank(armyTwo.army_id);
-
-      console.log({ statusOf: "After Deleting", rankOne, rankTwo });
 
       if (finalResult === "draw") {
         const rankChangeObj = rankChangeDraw(rankOne.ranking, rankTwo.ranking);
@@ -936,13 +920,6 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
           armyOne.army_id,
           battleObj.date,
           battleObj.battle_type
-        );
-
-        console.log(
-          rankChangeWinner,
-          rankChangeLoser,
-          newRankWinner,
-          newRankLoser
         );
 
         res

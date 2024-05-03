@@ -186,11 +186,9 @@ const getArmyNemesis = async (req, res) => {
       const playerOneBool = battle.player_1.find(
         (player) => player.army_id === armyID
       );
-      console.log(playerOneBool);
       const playerTwoBool = battle.player_2.find(
         (player) => player.army_id === armyID
       );
-      console.log(playerTwoBool);
       if (playerOneBool || playerTwoBool) {
         return true;
       } else {
@@ -461,7 +459,6 @@ const getArmyInfo = async (req, res) => {
         const winnerPlayer = battle.combatant_1_id === battle.winner ? 1 : 2;
 
         if (targetPlayer === winnerPlayer && battle.result !== "draw") {
-          console.log("condition passed");
           return "win";
         }
       })

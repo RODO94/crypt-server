@@ -214,8 +214,7 @@ const createNewRank = async (newRank, armyID, date, type) => {
 
   const currentRankPosition =
     query.findIndex((ranking) => ranking.army_id === armyID) + 1;
-  console.log(query);
-  console.log(`Current Rank Position is ${currentRankPosition}`);
+
   const newRankObj = {
     id: crypto.randomUUID(),
     date: date,
@@ -223,8 +222,6 @@ const createNewRank = async (newRank, armyID, date, type) => {
     army_id: armyID,
     prev_ranking: currentRankPosition,
   };
-
-  console.log(newRankObj);
 
   try {
     await database("rank").insert(newRankObj);

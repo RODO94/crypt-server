@@ -5,6 +5,7 @@ const {
   fetchAllRankings,
   fetchTopFiveRanking,
   fetchOneRanking,
+  fetchAllArmyRankings,
 } = require("../controllers/rankings-controllers");
 const router = express.Router();
 const pool = database.client.pool;
@@ -31,5 +32,5 @@ const pool = database.client.pool;
 router.route("/all").get(fetchAllRankings);
 router.route("/top5").get(fetchTopFiveRanking);
 router.route("/:id").get(fetchOneRanking);
-
+router.route("/:id/all").get(fetchAllArmyRankings);
 module.exports = router;

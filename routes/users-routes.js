@@ -132,7 +132,7 @@ router.route("/login").post(async (req, res) => {
       process.env.JWT_KEY,
       { expiresIn: "24h" }
     );
-    res.send(token);
+    res.send({ token: token, role: user.role });
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to find user");

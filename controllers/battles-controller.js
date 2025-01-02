@@ -422,6 +422,60 @@ const fetchUsersCompletedBattles = async (req, res) => {
   }
 };
 
+const fetchUsersLastFiveBattles = async (req, res) => {
+  const authToken = req.headers.authorization.split(" ")[1];
+
+  try {
+    const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+
+    const profile = await getTokenProfile(decodedToken.id);
+
+    delete profile.password;
+    const userID = profile.id;
+
+    const formattedBattleArray = await completedBattleFormatting();
+
+    const filteredUserArray = formattedBattleArray.filter(
+      (battle) => battle.user_1_id === userID || battle.user_2_id === userID
+    );
+
+    const sortedArray = filteredUserArray
+      .sort(
+        (a, b) =>
+          dayjs(b.date, "YYYY-MM-DD").valueOf() -
+          dayjs(a.date, "YYYY-MM-DD").valueOf()
+      )
+      .slice(0, 4);
+
+    const winnerArray = sortedArray.map((battle) => {
+      if (battle.result === "draw") {
+        return { ...battle, userResult: "draw" };
+      }
+
+      const { user_1_id: userOneId } = battle;
+      const whichPlayerIsUser = userID === userOneId ? "one" : "two";
+      const { winner, combatant_1_id, combatant_2_id } = battle;
+
+      console.log({ whichPlayerIsUser, winner });
+
+      if (winner === combatant_1_id && whichPlayerIsUser === "one") {
+        console.log("winner One");
+        return { ...battle, userResult: "win" };
+      } else if (winner === combatant_2_id && whichPlayerIsUser === "two") {
+        console.log("winner Two");
+        return { ...battle, userResult: "win" };
+      } else {
+        return { ...battle, userResult: "loss" };
+      }
+    });
+
+    res.status(200).send(winnerArray);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("unable to retrive the battles");
+  }
+};
+
 const fetchAllUsersBattles = async (req, res) => {
   const userID = req.params.id;
 
@@ -622,6 +676,7 @@ module.exports = {
   battleResultFortyK,
   fetchUsersUpcomingBattles,
   fetchUsersCompletedBattles,
+  fetchUsersLastFiveBattles,
   fetchAllUsersBattles,
   fetchAllUsersBattlesCount,
   fetchUsersUpcomingBattlesCount,

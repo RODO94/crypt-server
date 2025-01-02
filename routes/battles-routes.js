@@ -38,28 +38,9 @@ const {
   fetchOneBattle,
   multiplayerMapping,
   deleteCreateNewRank,
+  fetchUsersLastFiveBattles,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
-const pool = database.client.pool;
-
-// database.on("query", (builder) => {
-//   console.log("Battle Routes to be executed", builder.sql);
-//   console.log("Battle Routes Pool Used on Start", pool.numUsed());
-//   console.log("Battle Routes Pool Used on Start", pool.numPendingAcquires());
-//   console.log("Battle Routes Pool Free on Start", pool.numFree());
-// });
-
-// database.on("query-response", (response, builder) => {
-//   console.log("Battle Routes Query executed successfully:", builder.sql);
-//   console.log("Battle Routes Pool Used on response", pool.numUsed());
-//   console.log("Battle Routes Pool Free on response", pool.numFree());
-// });
-
-// database.on("query-error", (error, builder) => {
-//   console.error("Error executing query:", builder.sql, error);
-//   console.log("Battle Routes Error Pool Used on error", pool.numUsed());
-//   console.log("Battle Routes Error Pool Free on error", pool.numFree());
-// });
 
 router.route("/create").post(headerAuth, async (req, res) => {
   let {
@@ -178,6 +159,7 @@ router.route("/:id/all").get(fetchAllUsersBattles);
 router.route("/:id/all/count").get(fetchAllUsersBattlesCount);
 router.route("/user/upcoming").get(fetchUsersUpcomingBattles);
 router.route("/user/completed").get(fetchUsersCompletedBattles);
+router.route("/user/last/5").get(fetchUsersLastFiveBattles);
 router.route("/:id/upcoming/count").get(fetchUsersUpcomingBattlesCount);
 router.route("/:id/completed").get(fetchUsersCompletedBattles);
 router.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);
@@ -784,7 +766,8 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
   battleObj.player_1_points > battleObj.player_2_points &&
   finalResult !== "draw"
     ? (battleWinner = battleObj.player_1_id)
-    : battleObj.player_1_points < battleObj.player_2_points && finalResult !== "draw"
+    : battleObj.player_1_points < battleObj.player_2_points &&
+      finalResult !== "draw"
     ? (battleWinner = battleObj.player_2_id)
     : (battleWinner = "draw");
 

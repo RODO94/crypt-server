@@ -454,15 +454,13 @@ const fetchUsersLastFiveBattles = async (req, res) => {
 
       const { user_1_id: userOneId } = battle;
       const whichPlayerIsUser = userID === userOneId ? "one" : "two";
-      const { winner, combatant_1_id, combatant_2_id } = battle;
+      const { winner, combatant_1_id } = battle;
 
-      console.log({ whichPlayerIsUser, winner });
+      const whoIsWinner = winner === combatant_1_id ? "playerOne" : "playerTwo";
 
-      if (winner === combatant_1_id && whichPlayerIsUser === "one") {
-        console.log("winner One");
+      if (whoIsWinner === "playerOne" && whichPlayerIsUser === "one") {
         return { ...battle, userResult: "win" };
-      } else if (winner === combatant_2_id && whichPlayerIsUser === "two") {
-        console.log("winner Two");
+      } else if (whoIsWinner === "playerTwo" && whichPlayerIsUser === "two") {
         return { ...battle, userResult: "win" };
       } else {
         return { ...battle, userResult: "loss" };

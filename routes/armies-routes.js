@@ -86,7 +86,7 @@ router.route("/army/:id").get(fetchOneArmy);
 router.route("/:id/update").patch(headerAuth, async (req, res) => {
   const armyID = req.params.id;
 
-  const { name, type } = req.body;
+  const { name, type, userId } = req.body;
   let { emblemName, emblemID } = req.body;
 
   const targetArmy = await database("armies").where({ id: armyID }).first();
@@ -98,6 +98,7 @@ router.route("/:id/update").patch(headerAuth, async (req, res) => {
   try {
     name ? await updateArmyField(armyID, "name", name) : name;
     type ? await updateArmyField(armyID, "type", type) : type;
+    userId && (await updateArmyField(armyID, "user_id", userId));
     emblemName
       ? await updateArmyField(armyID, "emblem", emblemName)
       : emblemName;

@@ -378,14 +378,15 @@ const getArmyInfo = async (req, res) => {
       }
     });
 
+    const armyObj = await database("rank_view")
+      .join("armies", "armies.id", "=", "rank_view.army_id")
+      .join("users", "armies.user_id", "=", "users.id")
+      .select("armies.*", "users.known_as", "rn", "ranking")
+      .where("armies.id", "=", armyID)
+      .andWhere("rn", "=", 1)
+      .first();
+
     if (!filterArray[0]) {
-      const armyObj = await database("rank_view")
-        .join("armies", "armies.id", "=", "rank_view.army_id")
-        .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.*", "users.known_as", "rn", "ranking")
-        .where("armies.id", "=", armyID)
-        .andWhere("rn", "=", 1)
-        .first();
       return res.status(200).send({
         nemesis: {},
         ally: {},
@@ -469,7 +470,7 @@ const getArmyInfo = async (req, res) => {
     res.status(200).send({
       nemesis: sortedNemesisArray[0],
       ally: sortedAllyArray[0],
-      user: userArray[0],
+      user: armyObj,
       battleCount: filterArray.length,
       winPercent,
     });

@@ -1,4 +1,5 @@
-import { Army, CountedArmy } from "../../../types/armies";
+import { Army, ArmyId, ArmyType, CountedArmy } from "../../../types/armies";
+import database from "../../../database/db";
 
 export const armyCountFn = (array: Army[]) => {
   const returnArray: CountedArmy[] = [];
@@ -20,4 +21,23 @@ export const armyCountFn = (array: Army[]) => {
   });
 
   return returnArray;
+};
+
+export const getRankAndPosition = async (type: ArmyType, armyID: ArmyId) => {
+  const subquery = database("rank")
+    .join("armies", "rank.army_id", "=", "armies.id")
+    .select("army_id", "date", "ranking")
+    .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
+    .where({ "armies.type": type })
+    .as("ranks");
+
+  const query = database(subquery)
+    .select("army_id", "date", "ranking", "rn")
+    .where("rn", 1)
+    .orderBy("ranking", "desc");
+
+  const currentRankPosition =
+    (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
+
+  return currentRankPosition;
 };

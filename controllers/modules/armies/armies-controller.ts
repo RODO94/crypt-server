@@ -2,7 +2,8 @@ import database from "../../../database/db";
 import dayjs from "dayjs";
 import crypto from "crypto";
 import { completedArmiesBattleFormatting } from "../../../utils/ArrayMethods";
-import { armyCountFn } from "./helpers";
+import { armyCountFn, getRankAndPosition } from "./helpers";
+import { Army, ArmyRank } from "../../../types/armies";
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
@@ -21,15 +22,15 @@ const fetchOneArmy = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const armyObj = await database("armies").where({ id: id }).first();
+    const army: Army = await database("armies").where({ id: id }).first();
 
-    if (!armyObj) {
+    if (!army) {
       return res
         .status(400)
         .send("We cannot find the army you are looking for");
     }
 
-    res.status(200).send(armyObj);
+    res.status(200).send(army);
   } catch (error) {
     console.error(error);
     res.status(400).send("We cannot process your request right now");
@@ -38,47 +39,34 @@ const fetchOneArmy = async (req, res) => {
 
 const addNewArmyRanking = async (req, res) => {
   const armyID = req.params.id;
-  const { newRank } = req.body;
+  const { newRank: newRankScore } = req.body;
 
-  if (!newRank) {
+  if (!newRankScore) {
     return res.status(400).send("Please add the new rank to the request body");
   }
 
-  const armyObj = await database("armies").where({ id: armyID }).first();
+  const army = await database("armies").where({ id: armyID }).first();
 
-  if (!armyObj) {
+  if (!army) {
     return res.status(400).send(`Can't find the army with ID: ${armyID}`);
   }
 
   try {
-    const subquery = database("rank")
-      .join("armies", "rank.army_id", "=", "armies.id")
-      .select("army_id", "date", "ranking")
-      .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
-      .where({ "armies.type": armyObj.type })
-      .as("ranks");
-
-    const query = database(subquery)
-      .select("army_id", "date", "ranking", "rn")
-      .where("rn", 1)
-      .orderBy("ranking", "desc");
-
-    const currentRankPosition =
-      (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
+    const currentRankPosition = await getRankAndPosition(army.type, armyID);
 
     const date = Date.now();
 
-    const newRankObj = {
+    const newRank: ArmyRank = {
       date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
       id: crypto.randomUUID(),
       army_id: armyID,
-      ranking: newRank,
+      ranking: newRankScore,
       prev_ranking: currentRankPosition,
     };
 
-    await database("rank").insert(newRankObj);
+    await database("rank").insert(newRank);
 
-    res.status(200).send(newRankObj);
+    res.status(200).send(newRank);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to update the rank");

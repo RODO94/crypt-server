@@ -15,7 +15,7 @@ const {
   getAllUserArmies,
   insertNewArmy,
   getArmyInfo,
-} = require("../controllers/armies-controller");
+} = require("../controllers/modules/armies/armies-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
 
 require("dotenv").config();

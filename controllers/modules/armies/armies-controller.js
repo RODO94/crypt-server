@@ -1,7 +1,9 @@
-const database = require("../database/db");
+const database = require("../../../database/db");
 const dayjs = require("dayjs");
 const crypto = require("crypto");
-const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
+const {
+  completedArmiesBattleFormatting,
+} = require("../../../utils/ArrayMethods");
 
 const armyCountFn = (array) => {
   const returnArray = [];

@@ -1,5 +1,5 @@
-const database = require("../database/db");
-const dayjs = require("dayjs");
+import database from "../database/db";
+import dayjs from "dayjs";
 
 // const pool = database.client.pool;
 
@@ -987,7 +987,7 @@ const singleBattlePlayerFormatting = async (battle) => {
   return newBattleObj;
 };
 
-module.exports = {
+export default {
   singleBattlePlayerFormatting,
   completedBattleFormattingLimited,
   completedBattleFormatting,

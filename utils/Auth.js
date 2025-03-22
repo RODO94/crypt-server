@@ -1,8 +1,8 @@
-const jwt = require("jsonwebtoken");
-const database = require("../database/db");
+import { verify } from "jsonwebtoken";
+import database from "../database/db";
 
 const verifyToken = (authToken) => {
-  const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+  const decodedToken = verify(authToken, process.env.JWT_KEY);
   if (!decodedToken) {
     return null;
   }
@@ -20,4 +20,4 @@ const getTokenProfile = async (id) => {
   }
 };
 
-module.exports = { verifyToken, getTokenProfile };
+export default { verifyToken, getTokenProfile };

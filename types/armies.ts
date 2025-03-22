@@ -5,9 +5,9 @@ export type ArmyType = "fantasy" | "40k";
 export interface Army {
   name: string;
   army_id: ArmyId;
-  id: UserId;
-  known_as: string;
-  ranking: string;
+  id?: string;
+  known_as?: string;
+  ranking?: string;
   emblem?: string;
   emblem_id?: string;
   type?: ArmyType;

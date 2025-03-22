@@ -1,12 +1,11 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const database = require("../database/db");
-const crypto = require("crypto");
-const router = express.Router();
-const nodemailer = require("nodemailer");
-const { adminAuth, headerAuth } = require("../middleware/auth");
-const {
+import { Router } from "express";
+import { hashSync, compareSync } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import database from "../database/db.js";
+import { randomUUID } from "crypto";
+import { createTransport } from "nodemailer";
+import { adminAuth, headerAuth } from "../middleware/auth.js";
+import {
   getAllUsers,
   getOneUser,
   getUserNemesis,
@@ -14,9 +13,10 @@ const {
   getOneOtherUser,
   getUserInfo,
   getOneUserWithToken,
-} = require("../controllers/users-controllers");
-const { verifyToken } = require("../utils/Auth");
+} from "../controllers/users-controllers.js";
+import { verifyToken } from "../utils/Auth.js";
 
+const userRouter = Router();
 require("dotenv").config();
 
 const baseURL = `${process.env.BASE_URL}${process.env.PORT}`;
@@ -43,7 +43,7 @@ const clientURL = `${process.env.CLIENT_URL}`;
 //   console.log("User Routes Error Pool Free on error", pool.numFree());
 // });
 
-const transport = nodemailer.createTransport({
+const transport = createTransport({
   host: "live.smtp.mailtrap.io",
   port: 587,
   auth: {
@@ -52,7 +52,7 @@ const transport = nodemailer.createTransport({
   },
 });
 
-router.route("/register").post(async (req, res) => {
+userRouter.route("/register").post(async (req, res) => {
   const { first_name, last_name, known_as, email, password, user_emblem } =
     req.body;
 
@@ -85,10 +85,10 @@ router.route("/register").post(async (req, res) => {
       );
   }
 
-  const hashedPassword = bcrypt.hashSync(password);
+  const hashedPassword = hashSync(password);
 
   const newUser = {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     first_name,
     last_name,
     known_as,
@@ -107,7 +107,7 @@ router.route("/register").post(async (req, res) => {
   }
 });
 
-router.route("/login").post(async (req, res) => {
+userRouter.route("/login").post(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email | !password) {
@@ -121,13 +121,13 @@ router.route("/login").post(async (req, res) => {
       return res.status(400).send("User has not been found");
     }
 
-    const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+    const isPasswordCorrect = compareSync(password, user.password);
 
     if (!isPasswordCorrect) {
       return res.status(400).send("Invalid Password");
     }
 
-    const token = jwt.sign(
+    const token = sign(
       { id: user.id, email: user.email },
       process.env.JWT_KEY,
       { expiresIn: "24h" }
@@ -139,9 +139,9 @@ router.route("/login").post(async (req, res) => {
   }
 });
 
-router.route("/forgot-password").post(async (req, res) => {
+userRouter.route("/forgot-password").post(async (req, res) => {
   const { email } = req.body;
-  const resetToken = crypto.randomUUID();
+  const resetToken = randomUUID();
 
   try {
     const user = await database("users").where({ email: email }).first();
@@ -177,7 +177,7 @@ router.route("/forgot-password").post(async (req, res) => {
   }
 });
 
-router.route("/reset/:token").patch(async (req, res) => {
+userRouter.route("/reset/:token").patch(async (req, res) => {
   const { password } = req.body;
 
   if (!password) {
@@ -192,7 +192,7 @@ router.route("/reset/:token").patch(async (req, res) => {
     return res.status(400).send("Invalid user ID in request parameters");
   }
 
-  const hashedPassword = bcrypt.hashSync(password);
+  const hashedPassword = hashSync(password);
 
   try {
     const userToChange = await database("users")
@@ -212,7 +212,7 @@ router.route("/reset/:token").patch(async (req, res) => {
   }
 });
 
-router.route("/:id/admin").patch(adminAuth, async (req, res) => {
+userRouter.route("/:id/admin").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -231,7 +231,7 @@ router.route("/:id/admin").patch(adminAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/deactivate").patch(adminAuth, async (req, res) => {
+userRouter.route("/:id/deactivate").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -250,7 +250,7 @@ router.route("/:id/deactivate").patch(adminAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/user").patch(adminAuth, async (req, res) => {
+userRouter.route("/:id/user").patch(adminAuth, async (req, res) => {
   const id = req.params.id;
 
   try {
@@ -269,7 +269,7 @@ router.route("/:id/user").patch(adminAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/edit/first_name").patch(headerAuth, async (req, res) => {
+userRouter.route("/:id/edit/first_name").patch(headerAuth, async (req, res) => {
   const { first_name } = req.body;
   const id = req.params.id;
 
@@ -296,7 +296,7 @@ router.route("/:id/edit/first_name").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/edit/last_name").patch(headerAuth, async (req, res) => {
+userRouter.route("/:id/edit/last_name").patch(headerAuth, async (req, res) => {
   const { last_name } = req.body;
   const id = req.params.id;
 
@@ -323,7 +323,7 @@ router.route("/:id/edit/last_name").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/edit/email").patch(headerAuth, async (req, res) => {
+userRouter.route("/:id/edit/email").patch(headerAuth, async (req, res) => {
   const { email } = req.body;
   const id = req.params.id;
 
@@ -350,7 +350,7 @@ router.route("/:id/edit/email").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
+userRouter.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
   const { known_as } = req.body;
   const id = req.params.id;
 
@@ -379,7 +379,7 @@ router.route("/:id/edit/known_as").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/rankings").get(headerAuth, async (req, res) => {
+userRouter.route("/rankings").get(headerAuth, async (req, res) => {
   const authToken = req.headers.authorization.split(" ")[1];
   const decodedToken = verifyToken(authToken);
 
@@ -441,19 +441,19 @@ router.route("/rankings").get(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/all").get(getAllUsers);
+userRouter.route("/all").get(getAllUsers);
 
-router.route("/one").get(getOneUser);
+userRouter.route("/one").get(getOneUser);
 
-router.route("/one/:id").get(getOneOtherUser);
+userRouter.route("/one/:id").get(getOneOtherUser);
 
-router.route("/nemesis").get(getUserNemesis);
-router.route("/ally").get(getUserAlly);
+userRouter.route("/nemesis").get(getUserNemesis);
+userRouter.route("/ally").get(getUserAlly);
 
-router.route("/token").get(getOneUserWithToken);
+userRouter.route("/token").get(getOneUserWithToken);
 
-router.route("/user/info").get(getUserInfo);
-router.route("/user/authenticate/:token").get((req, res) => {
+userRouter.route("/user/info").get(getUserInfo);
+userRouter.route("/user/authenticate/:token").get((req, res) => {
   const token = req.params.token;
 
   const response = verifyToken(token);
@@ -464,4 +464,4 @@ router.route("/user/authenticate/:token").get((req, res) => {
     return res.status(401).send(false);
   }
 });
-module.exports = router;
+export default userRouter;

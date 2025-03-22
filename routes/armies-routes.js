@@ -1,11 +1,12 @@
-const express = require("express");
-const database = require("../database/db");
-const router = express.Router();
-const crypto = require("crypto");
-const dayjs = require("dayjs");
-const jwt = require("jsonwebtoken");
+import { Router } from "express";
+import database from "../database/db.js";
+import crypto from "crypto";
+import dayjs from "dayjs";
+import jwt from "jsonwebtoken";
 
-const {
+const armyRouter = Router();
+
+import {
   updateArmyField,
   addNewArmyRanking,
   fetchOneArmy,
@@ -15,16 +16,16 @@ const {
   getAllUserArmies,
   insertNewArmy,
   getArmyInfo,
-} = require("../controllers/modules/armies/armies-controller");
-const { headerAuth, adminAuth } = require("../middleware/auth");
+} from "../controllers/modules/armies/armies-controller.ts";
+
+import { headerAuth, adminAuth } from "../middleware/auth.js";
 
 require("dotenv").config();
-const pool = database.client.pool;
 
-router.route("/all").get(getAllArmies);
-router.route("/all/:id").get(getAllUserArmies);
+armyRouter.route("/all").get(getAllArmies);
+armyRouter.route("/all/:id").get(getAllUserArmies);
 
-router.route("/create").post(headerAuth, async (req, res) => {
+armyRouter.route("/create").post(headerAuth, async (req, res) => {
   try {
     const { name, type, emblemName, emblemID } = req.body;
 
@@ -81,9 +82,9 @@ router.route("/create").post(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/army/:id").get(fetchOneArmy);
+armyRouter.route("/army/:id").get(fetchOneArmy);
 
-router.route("/:id/update").patch(headerAuth, async (req, res) => {
+armyRouter.route("/:id/update").patch(headerAuth, async (req, res) => {
   const armyID = req.params.id;
 
   const { name, type, userId } = req.body;
@@ -113,10 +114,10 @@ router.route("/:id/update").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/ranking").post(adminAuth, addNewArmyRanking);
+armyRouter.route("/:id/ranking").post(adminAuth, addNewArmyRanking);
 
-router.route("/:id/nemesis").get(getArmyNemesis);
-router.route("/:id/ally").get(getArmyAlly);
-router.route("/:id/info").get(getArmyInfo);
+armyRouter.route("/:id/nemesis").get(getArmyNemesis);
+armyRouter.route("/:id/ally").get(getArmyAlly);
+armyRouter.route("/:id/info").get(getArmyInfo);
 
-module.exports = router;
+export default armyRouter;

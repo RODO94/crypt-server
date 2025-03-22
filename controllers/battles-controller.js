@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
-const database = require("../database/db");
+const database = require("../database/db").default;
 const dayjs = require("dayjs");
 const {
   battleFormatting,
@@ -11,8 +11,8 @@ const {
   upcomingBattleFormattingLimited,
   completedBattleFormatting,
   formatOneBattle,
-} = require("../utils/ArrayMethods");
-const { getTokenProfile } = require("../utils/Auth");
+} = require("../utils/ArrayMethods").default;
+const { getTokenProfile } = require("../utils/Auth").default;
 
 const pool = database.client.pool;
 

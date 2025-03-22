@@ -1,14 +1,14 @@
-const express = require("express");
-const database = require("../database/db");
+import { Router } from "express";
+import { client } from "../database/db.js";
 
-const {
+import {
   fetchAllRankings,
   fetchTopFiveRanking,
   fetchOneRanking,
   fetchAllArmyRankings,
-} = require("../controllers/rankings-controllers");
-const router = express.Router();
-const pool = database.client.pool;
+} from "../controllers/rankings-controllers.js";
+const rankingRouter = Router();
+const pool = client.pool;
 // database.on("query", (builder) => {
 //   console.log("Ranking Routes to be executed", builder.sql);
 //   console.log("Ranking Routes Pool Used on Start", pool.numUsed());
@@ -29,8 +29,8 @@ const pool = database.client.pool;
 //   console.log("Ranking Routes Error Pool Free on error", pool.numFree());
 // });
 
-router.route("/all").get(fetchAllRankings);
-router.route("/top5").get(fetchTopFiveRanking);
-router.route("/:id").get(fetchOneRanking);
-router.route("/:id/all").get(fetchAllArmyRankings);
-module.exports = router;
+rankingRouter.route("/all").get(fetchAllRankings);
+rankingRouter.route("/top5").get(fetchTopFiveRanking);
+rankingRouter.route("/:id").get(fetchOneRanking);
+rankingRouter.route("/:id/all").get(fetchAllArmyRankings);
+export default rankingRouter;

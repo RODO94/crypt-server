@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import crypto from "crypto";
 import { completedArmiesBattleFormatting } from "../../../utils/ArrayMethods";
 import { armyCountFn, getRankAndPosition } from "./helpers";
-import { Army, ArmyRank } from "../../../types/armies";
+import { Army, ArmyRank, CountedArmy } from "../../../types/armies";
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
@@ -97,24 +97,26 @@ const getAllUserArmies = async (req, res) => {
       .select("army_id", "armies.name", "armies.type", "armies.emblem")
       .as("battleArray");
 
-    const maxCountArray = [];
+    console.log(battleArray);
+
+    const userArmies = [];
 
     battleArray.forEach((army) => {
-      const targetObj = maxCountArray.find(
-        (targetArmy) => targetArmy.army_id === army.army_id
+      const target = userArmies.find(
+        (targetArmy: Army) => targetArmy.army_id === army.army_id
       );
-      if (!targetObj) {
-        maxCountArray.push(army);
-      } else if (targetObj) {
-        const targetIndex = maxCountArray.findIndex(
+      if (!target) {
+        userArmies.push(army);
+      } else if (target) {
+        const targetIndex = userArmies.findIndex(
           (targetArmy) => targetArmy.army_id === army.army_id
         );
 
-        maxCountArray[targetIndex].count = army.count;
+        userArmies[targetIndex].count = army.count;
       }
     });
 
-    res.status(200).send(maxCountArray);
+    res.status(200).send(userArmies);
   } catch (error) {
     console.error(error);
     res.status(400).send(error);

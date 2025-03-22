@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const knex = require("knex")(require("../knexfile"));
+import { verify } from "jsonwebtoken";
+import knex from "knex";
 
 const headerAuth = async (req, res, next) => {
   if (!req.headers.authorization) {
@@ -9,7 +9,7 @@ const headerAuth = async (req, res, next) => {
   const authToken = req.headers.authorization.split(" ")[1];
 
   try {
-    const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+    const decodedToken = verify(authToken, process.env.JWT_KEY);
     const userID = decodedToken.id;
 
     const profile = await knex("users").where({ id: userID }).first();
@@ -30,7 +30,7 @@ const adminAuth = async (req, res, next) => {
   const authToken = req.headers.authorization.split(" ")[1];
 
   try {
-    const decodedToken = jwt.verify(authToken, process.env.JWT_KEY);
+    const decodedToken = verify(authToken, process.env.JWT_KEY);
     const userID = decodedToken.id;
 
     const profile = await knex("users").where({ id: userID }).first();
@@ -47,4 +47,4 @@ const adminAuth = async (req, res, next) => {
   }
 };
 
-module.exports = { headerAuth, adminAuth };
+export default { headerAuth, adminAuth };

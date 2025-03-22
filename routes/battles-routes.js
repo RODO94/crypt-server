@@ -1,15 +1,12 @@
-const express = require("express");
-const database = require("../database/db");
-const router = express.Router();
-const crypto = require("crypto");
-const dayjs = require("dayjs");
-const cors = require("cors");
-
-const jwt = require("jsonwebtoken");
+import { Router } from "express";
+import database, { transaction } from "../database/db.js";
+import { randomUUID } from "crypto";
+import dayjs from "dayjs";
 
 require("dotenv").config();
+const battleRouter = Router();
 
-const {
+import {
   singleToMultiCombatantUpdate,
   deleteCombatantTeam,
   addCombatant,
@@ -39,10 +36,10 @@ const {
   multiplayerMapping,
   deleteCreateNewRank,
   fetchUsersLastFiveBattles,
-} = require("../controllers/battles-controller");
-const { headerAuth, adminAuth } = require("../middleware/auth");
+} from "../controllers/battles-controller.js";
+import { headerAuth, adminAuth } from "../middleware/auth.js";
 
-router.route("/create").post(headerAuth, async (req, res) => {
+battleRouter.route("/create").post(headerAuth, async (req, res) => {
   let {
     points_size,
     battle_type,
@@ -78,15 +75,15 @@ router.route("/create").post(headerAuth, async (req, res) => {
   if (date === "unspecified") {
     date = dayjs().format("YYYY-MM-DD HH:mm:ss");
   }
-  const playerOneID = crypto.randomUUID();
-  const playerTwoID = crypto.randomUUID();
+  const playerOneID = randomUUID();
+  const playerTwoID = randomUUID();
 
   if (player_type === "single") {
     const playerOne = { id: playerOneID, army_id: player_1[0].army_id };
     const playerTwo = { id: playerTwoID, army_id: player_2[0].army_id };
 
     const newBattleObj = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       date: dayjs(date).format("YYYY-MM-DD"),
       player_type,
       battle_type,
@@ -100,7 +97,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
     };
 
     try {
-      await database.transaction(async (trx) => {
+      await transaction(async (trx) => {
         await trx("combatants").insert([playerOne, playerTwo]);
         await trx("battles").insert(newBattleObj);
       });
@@ -116,7 +113,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
   } else if (player_type === "multi") {
     try {
       const newBattleObj = {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         date: dayjs(date).format("YYYY-MM-DD"),
         player_type,
         battle_type,
@@ -131,7 +128,7 @@ router.route("/create").post(headerAuth, async (req, res) => {
       const playerOneMapped = multiplayerMapping(player_1, playerOneID);
       const playerTwoMapped = multiplayerMapping(player_2, playerTwoID);
 
-      await database.transaction(async (trx) => {
+      await transaction(async (trx) => {
         await trx("combatants").insert([
           ...playerOneMapped,
           ...playerTwoMapped,
@@ -147,45 +144,47 @@ router.route("/create").post(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/all").get(fetchAllBattles);
-router.route("/upcoming").get(fetchUpcomingBattles);
-router.route("/upcoming/5").get(fetchFiveUpcomingBattles);
-router.route("/completed").get(fetchCompletedBattles);
-router.route("/completed/5").get(fetchFiveCompletedBattles);
-router.route("/:id").get(fetchOneBattle);
-router.route("/:id/win/percent").get(fetchUsersWinPercent);
-router.route("/:id/win/count").get(fetchUsersWinCount);
-router.route("/:id/all").get(fetchAllUsersBattles);
-router.route("/:id/all/count").get(fetchAllUsersBattlesCount);
-router.route("/user/upcoming").get(fetchUsersUpcomingBattles);
-router.route("/user/completed").get(fetchUsersCompletedBattles);
-router.route("/user/last/5").get(fetchUsersLastFiveBattles);
-router.route("/:id/upcoming/count").get(fetchUsersUpcomingBattlesCount);
-router.route("/:id/completed").get(fetchUsersCompletedBattles);
-router.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);
+battleRouter.route("/all").get(fetchAllBattles);
+battleRouter.route("/upcoming").get(fetchUpcomingBattles);
+battleRouter.route("/upcoming/5").get(fetchFiveUpcomingBattles);
+battleRouter.route("/completed").get(fetchCompletedBattles);
+battleRouter.route("/completed/5").get(fetchFiveCompletedBattles);
+battleRouter.route("/:id").get(fetchOneBattle);
+battleRouter.route("/:id/win/percent").get(fetchUsersWinPercent);
+battleRouter.route("/:id/win/count").get(fetchUsersWinCount);
+battleRouter.route("/:id/all").get(fetchAllUsersBattles);
+battleRouter.route("/:id/all/count").get(fetchAllUsersBattlesCount);
+battleRouter.route("/user/upcoming").get(fetchUsersUpcomingBattles);
+battleRouter.route("/user/completed").get(fetchUsersCompletedBattles);
+battleRouter.route("/user/last/5").get(fetchUsersLastFiveBattles);
+battleRouter.route("/:id/upcoming/count").get(fetchUsersUpcomingBattlesCount);
+battleRouter.route("/:id/completed").get(fetchUsersCompletedBattles);
+battleRouter.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);
 
-router.route("/:id/edit/pointsize").patch(headerAuth, async (req, res) => {
-  const battleID = req.params.id;
-  const { points_size } = req.body;
-  const oldPointsSize = await database("battles")
-    .where({ id: battleID })
-    .first()
-    .select("points_size");
-  try {
-    await database("battles")
+battleRouter
+  .route("/:id/edit/pointsize")
+  .patch(headerAuth, async (req, res) => {
+    const battleID = req.params.id;
+    const { points_size } = req.body;
+    const oldPointsSize = await database("battles")
       .where({ id: battleID })
-      .update({ points_size: points_size });
-    res
-      .status(200)
-      .send(
-        `Points Size has been updated from ${oldPointsSize.points_size} to ${points_size}`
-      );
-  } catch (error) {
-    console.error(error);
-    res.status(400).send("Issue with altering points size in the database");
-  }
-});
-router.route("/:id/edit/scenario").patch(headerAuth, async (req, res) => {
+      .first()
+      .select("points_size");
+    try {
+      await database("battles")
+        .where({ id: battleID })
+        .update({ points_size: points_size });
+      res
+        .status(200)
+        .send(
+          `Points Size has been updated from ${oldPointsSize.points_size} to ${points_size}`
+        );
+    } catch (error) {
+      console.error(error);
+      res.status(400).send("Issue with altering points size in the database");
+    }
+  });
+battleRouter.route("/:id/edit/scenario").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { scenario } = req.body;
   const oldScenario = await database("battles")
@@ -206,7 +205,7 @@ router.route("/:id/edit/scenario").patch(headerAuth, async (req, res) => {
     res.status(400).send("Issue with altering scenario in the database");
   }
 });
-router.route("/:id/edit/date").patch(headerAuth, async (req, res) => {
+battleRouter.route("/:id/edit/date").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { date } = req.body;
 
@@ -230,7 +229,7 @@ router.route("/:id/edit/date").patch(headerAuth, async (req, res) => {
     res.status(400).send("Issue with altering date in the database");
   }
 });
-router.route("/:id/edit/start").patch(headerAuth, async (req, res) => {
+battleRouter.route("/:id/edit/start").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { start } = req.body;
 
@@ -248,7 +247,7 @@ router.route("/:id/edit/start").patch(headerAuth, async (req, res) => {
     res.status(400).send("Issue with altering Start Time in the database");
   }
 });
-router.route("/:id/edit/finish").patch(headerAuth, async (req, res) => {
+battleRouter.route("/:id/edit/finish").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { finish } = req.body;
 
@@ -270,7 +269,7 @@ router.route("/:id/edit/finish").patch(headerAuth, async (req, res) => {
     res.status(400).send("Issue with altering Finish Time in the database");
   }
 });
-router.route("/:id/edit/table").patch(headerAuth, async (req, res) => {
+battleRouter.route("/:id/edit/table").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { table } = req.body;
 
@@ -288,7 +287,7 @@ router.route("/:id/edit/table").patch(headerAuth, async (req, res) => {
     res.status(400).send("Issue with altering Table in the database");
   }
 });
-router.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
+battleRouter.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
   const battleID = req.params.id;
   const { battle_type, player_type } = req.body;
 
@@ -354,152 +353,160 @@ router.route("/:id/edit/gametype").patch(headerAuth, async (req, res) => {
       );
   }
 });
-router.route("/:id/edit/combatants").patch(headerAuth, async (req, res) => {
-  const battleID = req.params.id;
-  const { player_1, player_2 } = req.body;
+battleRouter
+  .route("/:id/edit/combatants")
+  .patch(headerAuth, async (req, res) => {
+    const battleID = req.params.id;
+    const { player_1, player_2 } = req.body;
 
-  const battleToChange = await database("battles")
-    .where({ id: battleID })
-    .first();
+    const battleToChange = await database("battles")
+      .where({ id: battleID })
+      .first();
 
-  if (!battleToChange) {
-    return res
-      .status(400)
-      .send("Unable to locate the battle you are looking for");
-  }
-
-  const prevPlayerOneID = battleToChange.player_1_id;
-  const prevPlayerTwoID = battleToChange.player_2_id;
-
-  if (
-    battleToChange.player_type === "single" &&
-    (player_1.length > 1) | (player_2.length > 1)
-  ) {
-    try {
-      const teamOneID = crypto.randomUUID();
-      const teamTwoID = crypto.randomUUID();
-
-      const teamOneArray = await singleToMultiCombatantUpdate(
-        player_1,
-        prevPlayerOneID,
-        teamOneID
-      );
-      const teamTwoArray = await singleToMultiCombatantUpdate(
-        player_2,
-        prevPlayerTwoID,
-        teamTwoID
-      );
-
-      await database("battles")
-        .where({ id: battleID })
-        .update({ player_type: "multi" });
-
-      await database("battles")
-        .where({ id: battleID })
-        .update({ player_1_id: teamOneID, player_2_id: teamTwoID });
-
-      res.status(200).send({
-        message: "Teams successfully Update",
-        teamOne: teamOneArray,
-        teamTwo: teamTwoArray,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(400).send("Unable to update teams");
+    if (!battleToChange) {
+      return res
+        .status(400)
+        .send("Unable to locate the battle you are looking for");
     }
-  } else if (
-    battleToChange.player_type === "single" &&
-    player_1.length === 1 &&
-    player_2.length === 1
-  ) {
-    try {
-      if (player_1.id !== prevPlayerOneID) {
-        await database("combatants")
-          .where({ id: prevPlayerOneID })
-          .update({ army_id: player_1[0].army_id });
+
+    const prevPlayerOneID = battleToChange.player_1_id;
+    const prevPlayerTwoID = battleToChange.player_2_id;
+
+    if (
+      battleToChange.player_type === "single" &&
+      (player_1.length > 1) | (player_2.length > 1)
+    ) {
+      try {
+        const teamOneID = randomUUID();
+        const teamTwoID = randomUUID();
+
+        const teamOneArray = await singleToMultiCombatantUpdate(
+          player_1,
+          prevPlayerOneID,
+          teamOneID
+        );
+        const teamTwoArray = await singleToMultiCombatantUpdate(
+          player_2,
+          prevPlayerTwoID,
+          teamTwoID
+        );
+
+        await database("battles")
+          .where({ id: battleID })
+          .update({ player_type: "multi" });
+
+        await database("battles")
+          .where({ id: battleID })
+          .update({ player_1_id: teamOneID, player_2_id: teamTwoID });
+
+        res.status(200).send({
+          message: "Teams successfully Update",
+          teamOne: teamOneArray,
+          teamTwo: teamTwoArray,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(400).send("Unable to update teams");
       }
-      if (player_2.id !== prevPlayerTwoID) {
-        await database("combatants")
-          .where({ id: prevPlayerTwoID })
-          .update({ army_id: player_2[0].army_id });
+    } else if (
+      battleToChange.player_type === "single" &&
+      player_1.length === 1 &&
+      player_2.length === 1
+    ) {
+      try {
+        if (player_1.id !== prevPlayerOneID) {
+          await database("combatants")
+            .where({ id: prevPlayerOneID })
+            .update({ army_id: player_1[0].army_id });
+        }
+        if (player_2.id !== prevPlayerTwoID) {
+          await database("combatants")
+            .where({ id: prevPlayerTwoID })
+            .update({ army_id: player_2[0].army_id });
+        }
+
+        res.status(200).send({
+          message: "Successfully updated the combatants",
+          player_1,
+          player_2,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(400).send("Unable to update the combatants");
       }
+    } else if (
+      battleToChange.player_type === "multi" &&
+      player_1.length === 1 &&
+      player_2.length === 1
+    ) {
+      const playerOneID = randomUUID();
+      const playerTwoID = randomUUID();
 
-      res.status(200).send({
-        message: "Successfully updated the combatants",
-        player_1,
-        player_2,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(400).send("Unable to update the combatants");
+      try {
+        await database("battles")
+          .where({ id: battleID })
+          .update({ player_type: "single" });
+
+        await deleteCombatantTeam(battleToChange.player_1_id);
+        await deleteCombatantTeam(battleToChange.player_2_id);
+
+        const playerOneObj = await addCombatant(
+          player_1[0].army_id,
+          playerOneID
+        );
+        const playerTwoObj = await addCombatant(
+          player_2[0].army_id,
+          playerTwoID
+        );
+
+        await assignNewCombatant(battleID, playerOneID, 1);
+        await assignNewCombatant(battleID, playerTwoID, 2);
+
+        res.status(200).send({
+          message: "Combatants have been successfully update",
+          player_1: playerOneObj,
+          player_2: playerTwoObj,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(400).send("Unable to update the battle");
+      }
+    } else if (
+      battleToChange.player_type === "multi" &&
+      player_1.length > 1 &&
+      player_2.length > 1
+    ) {
+      const playerOneID = randomUUID();
+      const playerTwoID = randomUUID();
+
+      try {
+        await deleteCombatantTeam(battleToChange.player_1_id);
+        await deleteCombatantTeam(battleToChange.player_2_id);
+
+        const teamOneArray = await multiplayerdatabaseInsert(
+          player_1,
+          playerOneID
+        );
+        const teamTwoArray = await multiplayerdatabaseInsert(
+          player_2,
+          playerTwoID
+        );
+
+        await assignNewCombatant(battleID, playerOneID, 1);
+        await assignNewCombatant(battleID, playerTwoID, 2);
+
+        res.status(200).send({
+          message: "Teams have been updated",
+          team_1: teamOneArray,
+          team_2: teamTwoArray,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(400).send("Unable to update teams");
+      }
     }
-  } else if (
-    battleToChange.player_type === "multi" &&
-    player_1.length === 1 &&
-    player_2.length === 1
-  ) {
-    const playerOneID = crypto.randomUUID();
-    const playerTwoID = crypto.randomUUID();
-
-    try {
-      await database("battles")
-        .where({ id: battleID })
-        .update({ player_type: "single" });
-
-      await deleteCombatantTeam(battleToChange.player_1_id);
-      await deleteCombatantTeam(battleToChange.player_2_id);
-
-      const playerOneObj = await addCombatant(player_1[0].army_id, playerOneID);
-      const playerTwoObj = await addCombatant(player_2[0].army_id, playerTwoID);
-
-      await assignNewCombatant(battleID, playerOneID, 1);
-      await assignNewCombatant(battleID, playerTwoID, 2);
-
-      res.status(200).send({
-        message: "Combatants have been successfully update",
-        player_1: playerOneObj,
-        player_2: playerTwoObj,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(400).send("Unable to update the battle");
-    }
-  } else if (
-    battleToChange.player_type === "multi" &&
-    player_1.length > 1 &&
-    player_2.length > 1
-  ) {
-    const playerOneID = crypto.randomUUID();
-    const playerTwoID = crypto.randomUUID();
-
-    try {
-      await deleteCombatantTeam(battleToChange.player_1_id);
-      await deleteCombatantTeam(battleToChange.player_2_id);
-
-      const teamOneArray = await multiplayerdatabaseInsert(
-        player_1,
-        playerOneID
-      );
-      const teamTwoArray = await multiplayerdatabaseInsert(
-        player_2,
-        playerTwoID
-      );
-
-      await assignNewCombatant(battleID, playerOneID, 1);
-      await assignNewCombatant(battleID, playerTwoID, 2);
-
-      res.status(200).send({
-        message: "Teams have been updated",
-        team_1: teamOneArray,
-        team_2: teamTwoArray,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(400).send("Unable to update teams");
-    }
-  }
-});
-router.route("/:id/edit/points_1").patch(headerAuth, async (req, res) => {
+  });
+battleRouter.route("/:id/edit/points_1").patch(headerAuth, async (req, res) => {
   const { points } = req.body;
   const battleID = req.params.id;
 
@@ -528,7 +535,7 @@ router.route("/:id/edit/points_1").patch(headerAuth, async (req, res) => {
     res.status(400).send("Unable to update the battle");
   }
 });
-router.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
+battleRouter.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
   const { points } = req.body;
   const battleID = req.params.id;
 
@@ -558,7 +565,7 @@ router.route("/:id/edit/points_2").patch(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/delete").delete(adminAuth, async (req, res) => {
+battleRouter.route("/:id/delete").delete(adminAuth, async (req, res) => {
   const battleID = req.params.id;
   const battleObj = await database("battles").where({ id: battleID }).first();
   try {
@@ -573,7 +580,7 @@ router.route("/:id/delete").delete(adminAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/submit").post(headerAuth, async (req, res) => {
+battleRouter.route("/:id/submit").post(headerAuth, async (req, res) => {
   const battleID = req.params.id;
 
   const battleObj = await database("battles").where({ id: battleID }).first();
@@ -730,7 +737,7 @@ router.route("/:id/submit").post(headerAuth, async (req, res) => {
   }
 });
 
-router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
+battleRouter.route("/:id/resubmit").post(adminAuth, async (req, res) => {
   const battleID = req.params.id;
 
   const battleObj = await database("battles").where({ id: battleID }).first();
@@ -919,4 +926,4 @@ router.route("/:id/resubmit").post(adminAuth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default battleRouter;

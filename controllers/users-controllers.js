@@ -1,11 +1,9 @@
-const database = require("../database/db");
+const database = require("../database/db").default;
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const {
-  completedBattleFormatting,
-  userCompletedBattleFormatting,
-} = require("../utils/ArrayMethods");
-const { verifyToken, getTokenProfile } = require("../utils/Auth");
+const { completedBattleFormatting, userCompletedBattleFormatting } =
+  require("../utils/ArrayMethods").default;
+const { verifyToken, getTokenProfile } = require("../utils/Auth").default;
 const { armyCountFn } = require("./armies-controller");
 
 // const pool = database.client.pool;

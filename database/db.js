@@ -1,3 +1,3 @@
-const config = require("../knexfile");
+import config from "../knexfile.js";
 
-module.exports = require("knex")(config);
+export default require("knex")(config);

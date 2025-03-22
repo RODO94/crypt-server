@@ -1,51 +1,9 @@
-const database = require("../database/db");
-const dayjs = require("dayjs");
-const crypto = require("crypto");
-const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
-
-// const pool = database.client.pool;
-
-// database.on("query", (builder) => {
-//   console.log("Army Controller to be executed", builder.sql);
-//   console.log("Army Controller Pool Used on Start", pool.numUsed());
-//   console.log("Army Controller Pool Used on Start", pool.numPendingAcquires());
-
-//   console.log("Army Controller Pool Free on Start", pool.numFree());
-// });
-
-// database.on("query-response", (response, builder) => {
-//   console.log("Army Controller Query executed successfully:", builder.sql);
-//   console.log("Army Controller Pool Used on response", pool.numUsed());
-//   console.log("Army Controller Pool Free on response", pool.numFree());
-// });
-
-// database.on("query-error", (error, builder) => {
-//   console.error("Error executing query:", builder.sql, error);
-//   console.log("Army Controller Error Pool Used on error", pool.numUsed());
-//   console.log("Army Controller Error Pool Free on error", pool.numFree());
-// });
-
-const armyCountFn = (array) => {
-  const returnArray = [];
-  array.forEach((army) => {
-    let armyBool = false;
-    for (let i = 0; i < returnArray.length; i++) {
-      if (
-        returnArray[i].id === army.id &&
-        returnArray[i].name === army.name &&
-        returnArray[i].known_as === army.known_as
-      ) {
-        armyBool = true;
-        returnArray[i].count++;
-      }
-    }
-    if (armyBool !== true) {
-      returnArray.push({ count: 1, ...army });
-    }
-  });
-
-  return returnArray;
-};
+import database from "../../../database/db";
+import dayjs from "dayjs";
+import crypto from "crypto";
+import { completedArmiesBattleFormatting } from "../../../utils/ArrayMethods";
+import { armyCountFn, getRankAndPosition } from "./helpers";
+import { Army, ArmyRank, CountedArmy } from "../../../types/armies";
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {
@@ -64,15 +22,15 @@ const fetchOneArmy = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const armyObj = await database("armies").where({ id: id }).first();
+    const army: Army = await database("armies").where({ id: id }).first();
 
-    if (!armyObj) {
+    if (!army) {
       return res
         .status(400)
         .send("We cannot find the army you are looking for");
     }
 
-    res.status(200).send(armyObj);
+    res.status(200).send(army);
   } catch (error) {
     console.error(error);
     res.status(400).send("We cannot process your request right now");
@@ -81,47 +39,34 @@ const fetchOneArmy = async (req, res) => {
 
 const addNewArmyRanking = async (req, res) => {
   const armyID = req.params.id;
-  const { newRank } = req.body;
+  const { newRank: newRankScore } = req.body;
 
-  if (!newRank) {
+  if (!newRankScore) {
     return res.status(400).send("Please add the new rank to the request body");
   }
 
-  const armyObj = await database("armies").where({ id: armyID }).first();
+  const army = await database("armies").where({ id: armyID }).first();
 
-  if (!armyObj) {
+  if (!army) {
     return res.status(400).send(`Can't find the army with ID: ${armyID}`);
   }
 
   try {
-    const subquery = database("rank")
-      .join("armies", "rank.army_id", "=", "armies.id")
-      .select("army_id", "date", "ranking")
-      .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
-      .where({ "armies.type": armyObj.type })
-      .as("ranks");
-
-    const query = database(subquery)
-      .select("army_id", "date", "ranking", "rn")
-      .where("rn", 1)
-      .orderBy("ranking", "desc");
-
-    const currentRankPosition =
-      (await query).findIndex((ranking) => ranking.army_id === armyID) + 1;
+    const currentRankPosition = await getRankAndPosition(army.type, armyID);
 
     const date = Date.now();
 
-    const newRankObj = {
+    const newRank: ArmyRank = {
       date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
       id: crypto.randomUUID(),
       army_id: armyID,
-      ranking: newRank,
+      ranking: newRankScore,
       prev_ranking: currentRankPosition,
     };
 
-    await database("rank").insert(newRankObj);
+    await database("rank").insert(newRank);
 
-    res.status(200).send(newRankObj);
+    res.status(200).send(newRank);
   } catch (error) {
     console.error(error);
     res.status(400).send("Unable to update the rank");
@@ -130,8 +75,8 @@ const addNewArmyRanking = async (req, res) => {
 
 const getAllArmies = async (req, res) => {
   try {
-    const armyArray = await database("armies").select("*");
-    res.status(200).send(armyArray);
+    const armies: Army[] = await database("armies").select("*");
+    res.status(200).send(armies);
   } catch (error) {
     console.error(error);
     res.status(400).send(error);
@@ -152,24 +97,26 @@ const getAllUserArmies = async (req, res) => {
       .select("army_id", "armies.name", "armies.type", "armies.emblem")
       .as("battleArray");
 
-    const maxCountArray = [];
+    console.log(battleArray);
+
+    const userArmies = [];
 
     battleArray.forEach((army) => {
-      const targetObj = maxCountArray.find(
-        (targetArmy) => targetArmy.army_id === army.army_id
+      const target = userArmies.find(
+        (targetArmy: Army) => targetArmy.army_id === army.army_id
       );
-      if (!targetObj) {
-        maxCountArray.push(army);
-      } else if (targetObj) {
-        const targetIndex = maxCountArray.findIndex(
+      if (!target) {
+        userArmies.push(army);
+      } else if (target) {
+        const targetIndex = userArmies.findIndex(
           (targetArmy) => targetArmy.army_id === army.army_id
         );
 
-        maxCountArray[targetIndex].count = army.count;
+        userArmies[targetIndex].count = army.count;
       }
     });
 
-    res.status(200).send(maxCountArray);
+    res.status(200).send(userArmies);
   } catch (error) {
     console.error(error);
     res.status(400).send(error);

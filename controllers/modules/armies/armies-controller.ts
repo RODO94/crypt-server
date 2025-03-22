@@ -75,8 +75,8 @@ const addNewArmyRanking = async (req, res) => {
 
 const getAllArmies = async (req, res) => {
   try {
-    const armyArray = await database("armies").select("*");
-    res.status(200).send(armyArray);
+    const armies: Army[] = await database("armies").select("*");
+    res.status(200).send(armies);
   } catch (error) {
     console.error(error);
     res.status(400).send(error);

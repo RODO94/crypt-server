@@ -1,31 +1,8 @@
-const database = require("../../../database/db");
-const dayjs = require("dayjs");
-const crypto = require("crypto");
-const {
-  completedArmiesBattleFormatting,
-} = require("../../../utils/ArrayMethods");
-
-const armyCountFn = (array) => {
-  const returnArray = [];
-  array.forEach((army) => {
-    let armyBool = false;
-    for (let i = 0; i < returnArray.length; i++) {
-      if (
-        returnArray[i].id === army.id &&
-        returnArray[i].name === army.name &&
-        returnArray[i].known_as === army.known_as
-      ) {
-        armyBool = true;
-        returnArray[i].count++;
-      }
-    }
-    if (armyBool !== true) {
-      returnArray.push({ count: 1, ...army });
-    }
-  });
-
-  return returnArray;
-};
+import database from "../../../database/db";
+import dayjs from "dayjs";
+import crypto from "crypto";
+import { completedArmiesBattleFormatting } from "../../../utils/ArrayMethods";
+import { armyCountFn } from "./helpers";
 
 const updateArmyField = async (armyID, fieldName, newValue) => {
   try {

@@ -3,28 +3,6 @@ const dayjs = require("dayjs");
 const crypto = require("crypto");
 const { completedArmiesBattleFormatting } = require("../utils/ArrayMethods");
 
-// const pool = database.client.pool;
-
-// database.on("query", (builder) => {
-//   console.log("Army Controller to be executed", builder.sql);
-//   console.log("Army Controller Pool Used on Start", pool.numUsed());
-//   console.log("Army Controller Pool Used on Start", pool.numPendingAcquires());
-
-//   console.log("Army Controller Pool Free on Start", pool.numFree());
-// });
-
-// database.on("query-response", (response, builder) => {
-//   console.log("Army Controller Query executed successfully:", builder.sql);
-//   console.log("Army Controller Pool Used on response", pool.numUsed());
-//   console.log("Army Controller Pool Free on response", pool.numFree());
-// });
-
-// database.on("query-error", (error, builder) => {
-//   console.error("Error executing query:", builder.sql, error);
-//   console.log("Army Controller Error Pool Used on error", pool.numUsed());
-//   console.log("Army Controller Error Pool Free on error", pool.numFree());
-// });
-
 const armyCountFn = (array) => {
   const returnArray = [];
   array.forEach((army) => {

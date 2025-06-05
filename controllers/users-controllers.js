@@ -8,28 +8,6 @@ const {
 const { verifyToken, getTokenProfile } = require("../utils/Auth");
 const { armyCountFn } = require("./armies-controller");
 
-// const pool = database.client.pool;
-
-// database.on("query", (builder) => {
-//   console.log("User Controller to be executed", builder.sql);
-//   console.log("User Controller Pool Used on Start", pool.numUsed());
-//   console.log("User Controller Pool Used on Start", pool.numPendingAcquires());
-
-//   console.log("User Controller Pool Free on Start", pool.numFree());
-// });
-
-// database.on("query-response", (response, builder) => {
-//   console.log("User Controller Query executed successfully:", builder.sql);
-//   console.log("User Controller Pool Used on response", pool.numUsed());
-//   console.log("User Controller Pool Free on response", pool.numFree());
-// });
-
-// database.on("query-error", (error, builder) => {
-//   console.error("Error executing query:", builder.sql, error);
-//   console.log("User Controller Error Pool Used on error", pool.numUsed());
-//   console.log("User Controller Error Pool Free on error", pool.numFree());
-// });
-
 const getAllUsers = async (req, res) => {
   try {
     const userArray = await database("users").select(

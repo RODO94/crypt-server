@@ -14,31 +14,6 @@ const {
 } = require("../utils/ArrayMethods");
 const { getTokenProfile } = require("../utils/Auth");
 
-const pool = database.client.pool;
-
-// database.on("query", (builder) => {
-//   console.log("Battle Controller to be executed", builder.sql);
-//   console.log("Battle Controller Pool Used on Start", pool.numUsed());
-//   console.log(
-//     "Battle Controller Pool Used on Start",
-//     pool.numPendingAcquires()
-//   );
-
-//   console.log("Battle Controller Pool Free on Start", pool.numFree());
-// });
-
-// database.on("query-response", (response, builder) => {
-//   console.log("Battle Controller Query executed successfully:", builder.sql);
-//   console.log("Battle Controller Pool Used on response", pool.numUsed());
-//   console.log("Battle Controller Pool Free on response", pool.numFree());
-// });
-
-// database.on("query-error", (error, builder) => {
-//   console.error("Error executing query:", builder.sql, error);
-//   console.log("Battle Controller Error Pool Used on error", pool.numUsed());
-//   console.log("Battle Controller Error Pool Free on error", pool.numFree());
-// });
-
 const createCombatant = async (playerObj, trx) => {
   try {
     await database("combatants").insert(playerObj);

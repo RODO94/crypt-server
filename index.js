@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const knex = require("knex")(require("./knexfile"));
 
 require("dotenv").config();
 
@@ -13,14 +12,6 @@ const userRoutes = require("./routes/users-routes");
 const battlesRoutes = require("./routes/battles-routes");
 const rankingsRoutes = require("./routes/rankings-routes");
 const armiesRoutes = require("./routes/armies-routes");
-
-const pool = knex.client.pool;
-
-// app.use("/", (req, res, next) => {
-//   console.log("Index File Pool in Use", pool.numUsed());
-//   console.log("Index File Pool free", pool.numFree());
-//   next();
-// });
 
 app.get("/", (req, res) => {
   res.send("Hello World");

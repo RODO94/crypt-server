@@ -37,7 +37,6 @@ const {
   fetchUsersWinPercent,
   fetchOneBattle,
   multiplayerMapping,
-  deleteCreateNewRank,
   fetchUsersLastFiveBattles,
 } = require("../controllers/battles-controller");
 const { headerAuth, adminAuth } = require("../middleware/auth");
@@ -161,7 +160,6 @@ router.route("/user/upcoming").get(fetchUsersUpcomingBattles);
 router.route("/user/completed").get(fetchUsersCompletedBattles);
 router.route("/user/last/5").get(fetchUsersLastFiveBattles);
 router.route("/:id/upcoming/count").get(fetchUsersUpcomingBattlesCount);
-router.route("/:id/completed").get(fetchUsersCompletedBattles);
 router.route("/:id/completed/count").get(fetchUsersCompletedBattlesCount);
 
 router.route("/:id/edit/pointsize").patch(headerAuth, async (req, res) => {

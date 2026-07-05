@@ -4,8 +4,6 @@ const jwt = require("jsonwebtoken");
 const database = require("../database/db");
 const dayjs = require("dayjs");
 const {
-  battleFormatting,
-  CompletedBattleFormatting,
   completedBattleFormattingLimited,
   upcomingBattleFormatting,
   upcomingBattleFormattingLimited,
@@ -207,51 +205,9 @@ const createNewRank = async (newRank, armyID, date, type) => {
   }
 };
 
-const deleteCreateNewRank = async (newRank, armyID, battleType) => {
-  const deleteQuery = await database("rank_view")
-    .where("rn", 1)
-    .andWhere({ army_id: armyID })
-    .first();
-
-  const deleteRankResponse = await database("rank")
-    .where({
-      id: deleteQuery.id,
-    })
-    .delete();
-
-  const query = await database("rank_view")
-    .where("rn", 1)
-    .andWhere({ army_id: armyID })
-    .orderBy("ranking", "desc");
-
-  const currentRankPosition =
-    query.findIndex((ranking) => ranking.army_id === armyID) + 1;
-
-  // TODO: Change date to date of battle
-  const date = Date.now();
-
-  const newRankObj = {
-    id: crypto.randomUUID(),
-    date: dayjs(date).format("YYYY-MM-DD HH:mm:ss"),
-    ranking: newRank,
-    army_id: armyID,
-    prev_ranking: currentRankPosition,
-  };
-
-  try {
-    await database("rank").insert(newRankObj);
-    return newRankObj;
-  } catch (error) {
-    console.error(error);
-    return error;
-  }
-};
-
 const fetchAllBattles = async (req, res) => {
   try {
-    const battleArray = await database("battles");
-
-    const formattedBattleArray = await battleFormatting(battleArray);
+    const formattedBattleArray = await completedBattleFormatting();
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -450,26 +406,8 @@ const fetchUsersLastFiveBattles = async (req, res) => {
 };
 
 const fetchAllUsersBattles = async (req, res) => {
-  const userID = req.params.id;
-
   try {
-    const battleArray = await database("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("users.id", "=", userID)
-      .select(
-        "battles.id",
-        "battles.date",
-        "armies.name",
-        "combatants.army_id"
-      );
-
-    const formattedBattleArray = await CompletedBattleFormatting(battleArray);
+    const formattedBattleArray = await completedBattleFormatting();
 
     res.status(200).send(formattedBattleArray);
   } catch (error) {
@@ -658,5 +596,4 @@ module.exports = {
   fetchUsersWinPercent,
   fetchOneBattle,
   createCombatant,
-  deleteCreateNewRank,
 };

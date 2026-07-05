@@ -9,137 +9,6 @@ const dayjs = require("dayjs");
 //   console.log("Array Methods Pool Free on Start", pool.numFree());
 // });
 
-const joinCombatantsArmiesUsers = async (id) => {
-  const array = await database("combatants")
-    .join("armies", "combatants.army_id", "=", "armies.id")
-    .join("users", "armies.user_id", "=", "users.id")
-    .join("rank", "combatants.army_id", "")
-    .where({ "combatants.id": id })
-    .orWhere({ "combatants.team_id": id });
-
-  return array;
-};
-
-const getUsersCompleteBattleArray = async (id) => {
-  try {
-    const battleArray = await database("battles")
-      .innerJoin("combatants", (builder) => {
-        builder
-          .on("battles.player_1_id", "=", "combatants.id")
-          .orOn("battles.player_2_id", "=", "combatants.id");
-      })
-      .join("armies", "combatants.army_id", "=", "armies.id")
-      .join("users", "armies.user_id", "=", "users.id")
-      .where("users.id", "=", id)
-      .andWhere({ status: "submitted" });
-    return battleArray;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
-};
-
-const battleFormattingVerionOne = async (array) => {
-  try {
-    const subquery = database("rank")
-      .join("armies", "rank.army_id", "=", "armies.id")
-      .select("army_id", "date", "ranking")
-      .rowNumber("rn", { column: "date", order: "desc" }, "army_id")
-      .as("ranks");
-
-    const promiseBattleArray = array.map(async (battle) => {
-      let newDate = dayjs(battle.date).format("YYYY-MM-DD");
-      let playerOneObj = await database("combatants")
-        .where({ "combatants.id": battle.player_1_id })
-        .orWhere({ "combatants.team_id": battle.player_1_id })
-        .join("armies", "combatants.army_id", "=", "armies.id")
-        .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
-
-      let playerTwoObj = await database("combatants")
-        .where({ "combatants.id": battle.player_2_id })
-        .orWhere({ "combatants.team_id": battle.player_2_id })
-        .join("armies", "combatants.army_id", "=", "armies.id")
-        .join("users", "armies.user_id", "=", "users.id")
-        .select("armies.name", "users.known_as", "armies.id", "armies.user_id");
-
-      const playerOneArray = playerOneObj.map(async (player) => {
-        let playerRankQuery = database(subquery)
-          .as("ranking_two")
-          .where("rn", 1)
-          .andWhere("army_id", player.id)
-          .pluck("ranking");
-
-        let playerRank = await Promise.resolve(playerRankQuery);
-
-        return {
-          id: player.user_id,
-          army_id: player.id,
-          name: player.name,
-          known_as: player.known_as,
-          rank: playerRank[0],
-        };
-      });
-
-      const playerTwoArray = playerTwoObj.map(async (player) => {
-        let playerRankQuery = database(subquery)
-          .as("ranking_two")
-          .where("rn", 1)
-          .andWhere("army_id", player.id)
-          .pluck("ranking");
-
-        let playerRank = await Promise.resolve(playerRankQuery);
-
-        return {
-          id: player.user_id,
-          army_id: player.id,
-          name: player.name,
-          known_as: player.known_as,
-          rank: playerRank[0],
-        };
-      });
-
-      const resolvedPlayerOne = await Promise.all(playerOneArray);
-      const resolvedPlayerTwo = await Promise.all(playerTwoArray);
-
-      let newBattleObj = {
-        id: battle.id,
-        date: newDate,
-        start: battle.start,
-        finish: battle.finish,
-        table: battle.table,
-        scenario: battle.scenario,
-        points_size: battle.points_size,
-        player_1_points: battle.player_1_points,
-        player_2_points: battle.player_2_points,
-        result: battle.result,
-        winner: battle.winner,
-        battle_type: battle.battle_type,
-        player_type: battle.player_type,
-        combatant_1_id: battle.player_1_id,
-        combatant_2_id: battle.player_2_id,
-        player_1: resolvedPlayerOne,
-        player_2: resolvedPlayerTwo,
-      };
-
-      return newBattleObj;
-    });
-
-    const formattedBattleArray = await Promise.all(promiseBattleArray);
-
-    const sortedBattleArray = formattedBattleArray.sort(
-      (a, b) => Date.parse(a.date) - Date.parse(b.date)
-    );
-    return sortedBattleArray;
-  } catch (error) {
-    console.error(error);
-    const formattedBattleArray = {
-      errorMessage: "Error formatting the battle array",
-    };
-    return formattedBattleArray;
-  }
-};
-
 const completedBattleFormattingLimited = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
@@ -584,92 +453,6 @@ const userCompletedBattleFormatting = async (id) => {
   }
 };
 
-const userUpcomingBattleFormatting = async (id) => {
-  try {
-    const [battleArray, rankArray] = await Promise.all([
-      database("battle-view").where({ status: null }).orderBy("date", "desc"),
-      database("rank_view").where("rn", 1),
-    ]);
-
-    const battleMap = new Map();
-    battleArray.forEach((battle) => {
-      const playerOneRankScore = rankArray.find(
-        (rank) => rank.army_id === battle.cb1_armyid
-      );
-      const playerTwoRankScore = rankArray.find(
-        (rank) => rank.army_id === battle.cb2_armyid
-      );
-
-      const battleKey = battle.id;
-
-      if (!battleMap.has(battleKey)) {
-        battleMap.set(battleKey, {
-          ...battle,
-          playerOne: [],
-          playerTwo: [],
-        });
-      }
-
-      const battleEntry = battleMap.get(battleKey);
-
-      const playerTwoExists = battleEntry.playerTwo.some(
-        (player) => player.army_id === battle.cb2_armyid
-      );
-      if (!playerTwoExists) {
-        battleEntry.playerTwo.push({
-          name: battle.a2_name,
-          army_id: battle.cb2_armyid,
-          id: battle.a2_userid,
-          known_as: battle.u2_known_as,
-          ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
-          emblem: battle.a2_emblem,
-        });
-      }
-
-      const playerOneExists = battleEntry.playerOne.some(
-        (player) => player.army_id === battle.cb1_armyid
-      );
-      if (!playerOneExists) {
-        battleEntry.playerOne.push({
-          name: battle.a1_name,
-          army_id: battle.cb1_armyid,
-          id: battle.a1_userid,
-          known_as: battle.u1_known_as,
-          ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
-          emblem: battle.a1_emblem,
-        });
-      }
-    });
-
-    const responseArray = Array.from(battleMap.values()).map((battle) => ({
-      id: battle.id,
-      date: dayjs(battle.date).format("YYYY-MM-DD"),
-      start: battle.start,
-      finish: battle.finish,
-      table: battle.table,
-      scenario: battle.scenario,
-      points_size: battle.points_size,
-      player_1_points: battle.player_1_points,
-      player_2_points: battle.player_2_points,
-      result: battle.result,
-      winner: battle.winner,
-      battle_type: battle.battle_type,
-      player_type: battle.player_type,
-      combatant_1_id: battle.player_1_id,
-      combatant_2_id: battle.player_2_id,
-      user_1_id: battle.a1_userid,
-      user_2_id: battle.a2_userid,
-      player_1: battle.playerOne,
-      player_2: battle.playerTwo,
-    }));
-
-    return responseArray;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
 const upcomingBattleFormattingLimited = async () => {
   try {
     const [battleArray, rankArray] = await Promise.all([
@@ -922,7 +705,6 @@ const completedArmiesBattleFormatting = async () => {
           known_as: battle.u2_known_as,
           emblem: battle.a2_emblem,
           ranking: playerTwoRankScore ? playerTwoRankScore.ranking : null,
-          emblem: battle.a2_emblem,
         });
       }
 
@@ -937,7 +719,6 @@ const completedArmiesBattleFormatting = async () => {
           known_as: battle.u1_known_as,
           emblem: battle.a1_emblem,
           ranking: playerOneRankScore ? playerOneRankScore.ranking : null,
-          emblem: battle.a1_emblem,
         });
       }
     });
@@ -971,31 +752,12 @@ const completedArmiesBattleFormatting = async () => {
   }
 };
 
-const singleBattlePlayerFormatting = async (battle) => {
-  const playerOneID = battle.player_1_id;
-  const playerTwoID = battle.player_2_id;
-
-  const playerOneArray = await joinCombatantsArmiesUsers(playerOneID);
-  const playerTwoArray = await joinCombatantsArmiesUsers(playerTwoID);
-
-  const newBattleObj = {
-    ...battle,
-    playerOne: playerOneArray,
-    playerTwo: playerTwoArray,
-  };
-
-  return newBattleObj;
-};
-
 module.exports = {
-  singleBattlePlayerFormatting,
   completedBattleFormattingLimited,
   completedBattleFormatting,
   upcomingBattleFormattingLimited,
   upcomingBattleFormatting,
   formatOneBattle,
   completedArmiesBattleFormatting,
-  getUsersCompleteBattleArray,
   userCompletedBattleFormatting,
-  userUpcomingBattleFormatting,
 };
